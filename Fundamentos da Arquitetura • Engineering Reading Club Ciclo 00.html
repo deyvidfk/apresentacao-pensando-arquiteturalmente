@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-950 text-slate-100 selection:bg-cyan-500 selection:text-slate-950">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fundamentos da Arquitetura • Engineering Reading Club Ciclo 00</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          },
+          colors: {
+            blueprint: {
+              bg: '#0A192F',
+              card: '#0F2744',
+              border: '#1E40AF',
+              grid: '#1E3A8A',
+              orange: '#FF6A00',
+              cyan: '#38BDF8',
+              blue: '#0086FF',
+              dark: '#030712'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .bg-blueprint-grid {
+      background-color: #0A192F;
+      background-image: 
+        linear-gradient(to right, rgba(30, 58, 138, 0.25) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(30, 58, 138, 0.25) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    
+    .bg-blueprint-grid-dense {
+      background-color: #0A192F;
+      background-image: 
+        linear-gradient(to right, rgba(56, 189, 248, 0.15) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(56, 189, 248, 0.15) 1px, transparent 1px);
+      background-size: 12px 12px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0A192F;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1E40AF;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #38BDF8;
+    }
+
+    @page {
+      size: A4 landscape;
+      margin: 0;
+    }
+
+    @media print {
+      body {
+        background-color: #0A192F !important;
+        color: #F8FAFC !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      #print-container {
+        display: block !important;
+      }
+      .print-page {
+        page-break-after: always;
+        break-after: page;
+        min-height: 100vh;
+        width: 100vw;
+        padding: 2rem;
+        box-sizing: border-box;
+        background-color: #0A192F !important;
+        background-image: 
+          linear-gradient(to right, rgba(30, 58, 138, 0.25) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(30, 58, 138, 0.25) 1px, transparent 1px) !important;
+        background-size: 24px 24px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+
+<body class="h-full bg-blueprint-bg text-slate-100 font-sans antialiased overflow-hidden flex flex-col">
+
+  <header class="no-print h-14 bg-blueprint-card/90 border-b border-blueprint-border/60 px-4 flex items-center justify-between z-30 shrink-0 backdrop-blur-md">
+    <div class="flex items-center space-x-3">
+      <div class="w-3 h-3 rounded-full bg-blueprint-orange animate-pulse"></div>
+      <span class="font-mono font-bold text-xs md:text-sm text-slate-200 tracking-wider">
+        MAGAZINE LUIZA <span class="text-blueprint-cyan">/</span> LUIZALABS <span class="text-blueprint-cyan">/</span> VERTICAL SELLERS
+      </span>
+    </div>
+
+    <!-- Title & Slide counter -->
+    <div class="hidden md:flex items-center space-x-2 font-mono text-xs text-slate-300">
+      <span class="text-blueprint-orange font-bold">CICLO 00</span>
+      <span>•</span>
+      <span>FUNDAMENTOS DA ARQUITETURA</span>
+      <span>•</span>
+      <span class="text-blueprint-cyan font-bold" id="header-slide-counter">SLIDE 01 / 29</span>
+    </div>
+
+    <!-- Controls Menu -->
+    <div class="relative flex items-center space-x-2">
+      <button id="btn-toggle-menu" onclick="toggleMenu()" class="px-3 py-1.5 bg-blueprint-bg border border-blueprint-border hover:border-blueprint-cyan rounded-lg text-xs font-mono text-slate-200 flex items-center space-x-1.5 transition">
+        <span>MENU</span>
+        <svg class="w-4 h-4 text-blueprint-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+      </button>
+
+      <!-- Dropdown Menu -->
+      <div id="dropdown-menu" class="hidden absolute right-0 top-10 w-56 bg-blueprint-card border border-blueprint-border rounded-xl shadow-2xl py-2 z-50 text-xs font-mono">
+        <button onclick="openPresenterPopUp(); toggleMenu()" class="w-full text-left px-4 py-2 hover:bg-blueprint-border/40 text-blueprint-cyan flex items-center justify-between">
+          <span>2ª TELA (POPUP)</span>
+          <span class="text-[10px] bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800">[P]</span>
+        </button>
+        <button onclick="toggleDrawer(); toggleMenu()" class="w-full text-left px-4 py-2 hover:bg-blueprint-border/40 text-blueprint-orange flex items-center justify-between">
+          <span>GAVETA DE COLA</span>
+          <span class="text-[10px] bg-orange-950/80 px-1.5 py-0.5 rounded border border-orange-800">[S]</span>
+        </button>
+        <button onclick="toggleGridModal(); toggleMenu()" class="w-full text-left px-4 py-2 hover:bg-blueprint-border/40 text-slate-200 flex items-center justify-between">
+          <span>ÍNDICE GERAL</span>
+          <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded">[G]</span>
+        </button>
+        <button onclick="toggleFullScreen(); toggleMenu()" class="w-full text-left px-4 py-2 hover:bg-blueprint-border/40 text-slate-200 flex items-center justify-between">
+          <span>TELA CHEIA</span>
+          <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded">[F]</span>
+        </button>
+        <button onclick="toggleControlsVisibility(); toggleMenu()" class="w-full text-left px-4 py-2 hover:bg-blueprint-border/40 text-slate-300 flex items-center justify-between">
+          <span id="label-hide-controls">OCULTAR NAVEGAÇÃO</span>
+          <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded">[H]</span>
+        </button>
+        <div class="border-t border-blueprint-border/50 my-1"></div>
+        <button onclick="window.print(); toggleMenu()" class="w-full text-left px-4 py-2 hover:bg-blueprint-border/40 text-slate-300 flex items-center justify-between">
+          <span>IMPRIMIR / PDF</span>
+          <span class="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded">Ctrl+P</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="no-print flex-1 relative bg-blueprint-grid overflow-y-auto p-4 md:p-8 flex items-center justify-center">
+    <!-- Blueprint Corner Crosshairs -->
+    <div class="absolute top-3 left-3 text-blueprint-cyan/40 font-mono text-xs select-none pointer-events-none">+ 00.10.95</div>
+    <div class="absolute top-3 right-3 text-blueprint-cyan/40 font-mono text-xs select-none pointer-events-none">+ 99.88.01</div>
+    <div class="absolute bottom-3 left-3 text-blueprint-cyan/40 font-mono text-xs select-none pointer-events-none">+ 00.00.00</div>
+    <div class="absolute bottom-3 right-3 text-blueprint-cyan/40 font-mono text-xs select-none pointer-events-none">+ 99.99.99</div>
+
+    <!-- Active Slide Card -->
+    <div id="slide-card" class="w-full max-w-6xl bg-blueprint-card/95 border-2 border-blueprint-border rounded-2xl shadow-2xl p-6 md:p-10 flex flex-col justify-between min-h-[580px] relative transition-all duration-300">
+      
+      <!-- Slide Header -->
+      <div class="space-y-2 border-b border-blueprint-border/80 pb-4">
+        <div class="flex items-center justify-between font-mono text-xs text-blueprint-cyan">
+          <span id="slide-subtitle" class="uppercase tracking-widest font-semibold">TÓPICO // CATEGORIA</span>
+          <span id="slide-badge" class="px-2 py-0.5 bg-blueprint-bg border border-blueprint-cyan/40 rounded text-blueprint-cyan font-bold">FASE 01</span>
+        </div>
+        <h1 id="slide-title" class="text-2xl md:text-3xl font-extrabold text-slate-100 tracking-tight leading-tight">
+          Título do Slide
+        </h1>
+      </div>
+
+      <!-- Slide Dynamic Visual Area -->
+      <div id="slide-content-area" class="my-6 flex-1 flex flex-col justify-center">
+        <!-- Visual component inserted dynamically by JS -->
+      </div>
+
+      <!-- Slide Footer (Chamada & Nota) -->
+      <div class="pt-4 border-t border-blueprint-border/80 space-y-2">
+        <div id="slide-chamada-box" class="p-3 bg-blueprint-bg rounded-xl border border-blueprint-orange/60 text-slate-100 font-semibold text-sm md:text-base flex items-start space-x-2">
+          <span class="text-blueprint-orange text-lg font-mono">⚡</span>
+          <div id="slide-chamada" class="flex-1">Chamada Principal</div>
+        </div>
+        <div id="slide-nota" class="text-xs md:text-sm text-slate-300 font-sans leading-relaxed pl-2 border-l-2 border-blueprint-cyan">
+          Nota complementar de leitura assíncrona.
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer id="footer-navigation" class="no-print h-16 bg-blueprint-card border-t border-blueprint-border/80 px-4 md:px-8 flex items-center justify-between z-20 shrink-0">
+    <!-- Prev button -->
+    <button id="btn-prev" onclick="prevSlide()" class="px-4 py-2 bg-blueprint-bg hover:bg-blueprint-border/60 border border-blueprint-border rounded-xl font-mono text-xs font-bold text-slate-200 flex items-center space-x-2 transition disabled:opacity-40 disabled:cursor-not-allowed">
+      <svg class="w-4 h-4 text-blueprint-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+      <span>ANTERIOR</span>
+    </button>
+
+    <!-- Progress Bar -->
+    <div class="hidden sm:flex flex-1 max-w-md mx-6 flex-col space-y-1">
+      <div class="flex justify-between font-mono text-[11px] text-slate-400">
+        <span>PROGRESSO DO ERC</span>
+        <span id="progress-percentage" class="text-blueprint-cyan font-bold">0%</span>
+      </div>
+      <div class="w-full bg-blueprint-bg h-2 rounded-full overflow-hidden border border-blueprint-border/50">
+        <div id="progress-bar-fill" class="bg-gradient-to-r from-blueprint-blue via-blueprint-cyan to-blueprint-orange h-full w-0 transition-all duration-300"></div>
+      </div>
+    </div>
+
+    <!-- Next button -->
+    <button id="btn-next" onclick="nextSlide()" class="px-4 py-2 bg-blueprint-orange hover:bg-orange-600 rounded-xl font-mono text-xs font-bold text-slate-950 flex items-center space-x-2 transition shadow-lg shadow-orange-950/40">
+      <span>PRÓXIMO</span>
+      <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+    </button>
+  </footer>
+
+  <div id="drawer-panel" class="no-print fixed inset-x-0 bottom-0 bg-blueprint-card/98 border-t-2 border-blueprint-orange shadow-2xl z-40 transform translate-y-full transition-transform duration-300 max-h-[60vh] flex flex-col opacity-0 invisible pointer-events-none">
+    <div class="p-4 bg-blueprint-bg border-b border-blueprint-border flex items-center justify-between shrink-0">
+      <div class="flex items-center space-x-2 text-blueprint-orange font-mono font-bold text-xs md:text-sm">
+        <span>📖 COLA DO FACILITADOR // SCRIPT DE FALA</span>
+        <span class="text-slate-400 font-normal">| Pressione [S] para fechar</span>
+      </div>
+      <button onclick="toggleDrawer()" class="p-1 hover:bg-blueprint-border rounded text-slate-400 hover:text-slate-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="p-6 overflow-y-auto space-y-4 text-sm font-sans text-slate-200">
+      <div class="p-4 bg-blueprint-bg/80 border border-blueprint-cyan/40 rounded-xl space-y-1">
+        <strong class="text-blueprint-cyan font-mono text-xs block uppercase">💬 Exemplo de Fala Inicial:</strong>
+        <p id="drawer-speech" class="text-slate-100 text-sm md:text-base leading-relaxed italic"></p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="p-4 bg-blueprint-bg/80 border border-blueprint-border rounded-xl space-y-1">
+          <strong class="text-slate-300 font-mono text-xs block uppercase">🎯 O que Explicar:</strong>
+          <p id="drawer-explain" class="text-xs md:text-sm text-slate-300 leading-relaxed"></p>
+        </div>
+        <div class="p-4 bg-blueprint-bg/80 border border-blueprint-border rounded-xl space-y-1">
+          <strong class="text-blueprint-orange font-mono text-xs block uppercase">🔗 Gancho de Conexão:</strong>
+          <p id="drawer-hook" class="text-xs md:text-sm text-slate-300 leading-relaxed"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="grid-modal" class="no-print fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 md:p-8">
+    <div class="bg-blueprint-card border border-blueprint-border rounded-2xl w-full max-w-5xl max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-4 bg-blueprint-bg border-b border-blueprint-border flex items-center justify-between">
+        <h3 class="text-sm font-mono font-bold text-blueprint-cyan">ÍNDICE GERAL DE SLIDES (29 SLIDES)</h3>
+        <button onclick="toggleGridModal()" class="text-slate-400 hover:text-slate-100 font-mono text-xs">FECHAR [ESC]</button>
+      </div>
+      <div id="grid-cards-container" class="p-6 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <!-- Cards generated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <div id="print-container" class="hidden">
+    <!-- Printed pages generated dynamically before printing -->
+  </div>
+
+  <script>
+    const slidesData = [
+      {
+        id: 1,
+        title: "Fundamentos do Pensamento Arquitetural",
+        subtitle: "Engineering Reading Club • Ciclo 00",
+        chamada: "Linguagem comum, métodos de trabalho e decisões de engenharia.",
+        nota: "Abertura oficial do Ciclo 00. O objetivo não é um curso passivo, mas nivelar o raciocínio técnico e criar convenções para os debates que virão.",
+        visualType: "capa",
+        speech: "Fala, pessoal, muito bem-vindos ao pontapé de início do nosso Engineering Reading Club! Hoje iniciamos oficialmente o Ciclo 00, focado nos Fundamentos do Pensamento Arquitetural.",
+        explain: "Explique que este ciclo visa nivelar o raciocínio técnico da equipe, unificando a linguagem antes de partirmos para sistemas distribuídos avançados.",
+        hook: "E para que nossas discussões funcionem com alta performance, nós estabelecemos uma dinâmica colaborativa de papéis ativos...",
+        tip: "Apresente a reunião com tom acolhedor e instigue a participação ativa do time desde o primeiro minuto."
+      },
+      {
+        id: 2,
+        title: "A Dinâmica dos Encontros & Nossos Papéis",
+        subtitle: "Estrutura Colaborativa // Rotação de Responsabilidades",
+        chamada: "Operamos em ciclo ativo: Ler ➔ Compreender ➔ Questionar ➔ Aplicar ➔ Compartilhar.",
+        nota: "A reunião é conduzida por quatro papéis rotativos: Facilitador, Questionador, Documentador e Timekeeper.",
+        visualType: "papeis",
+        speech: "Esse clube de leitura não é uma apresentação unilateral. Operamos com papéis rotativos para garantir dinamismo e entregáveis reais.",
+        explain: "Apresente quem assume cada papel hoje. Chame nominalmente o Questionador (atirador de pedras) e o Documentador.",
+        hook: "Mas antes de entrarmos nos exercícios, vamos conhecer os três livros clássicos que sustentam nosso repertório...",
+        tip: "Dê permissão formal para o Questionador interromper e provocar reflexões difíceis."
+      },
+      {
+        id: 3,
+        title: "O Repertório do Ciclo 00",
+        subtitle: "Referências Bibliográficas // Três Livros de Cabeceira",
+        chamada: "Nossa fundação metodológica repousa sobre três grandes referências bibliográficas.",
+        nota: "Martin Fowler (IEEE/Paper), Richards & Ford (O'Reilly) e Gregor Hohpe (O'Reilly).",
+        visualType: "repertorio_obras",
+        speech: "Nossa base conceitual vem de três das maiores referências do mercado, que se complementam perfeitamente.",
+        explain: "Apresente brevemente as três referências e mostre que juntas elas cobrem pessoas, leis e conexão com o negócio.",
+        hook: "Vamos olhar em detalhes para a essência do primeiro autor: o clássico paper de Martin Fowler...",
+        tip: "Reforce que os livros não são dogmas imutáveis, mas ferramentas para análise crítica."
+      },
+      {
+        id: 4,
+        title: "Martin Fowler: Reversibilidade & Construto Social",
+        subtitle: "Paper Histórico // 'Who Needs an Architect?' (2003)",
+        chamada: "Arquitetura é o entendimento compartilhado do sistema + foco em eliminar decisões irreversíveis.",
+        nota: "O bom arquiteto (Architectus Oryzus / O Guia) mentora o time e adia escolhas caras, evitando o perfil ditador (Reloadus).",
+        visualType: "fowler_oryzus",
+        speech: "Fowler redefine arquitetura tirando-a do papel frio e trazendo-a para o nível de entendimento compartilhado do time sênior.",
+        explain: "Diferencie o perfil Reloadus (torre de marfim dos anos 2000) do perfil Oryzus (o guia que programa junto e eleva a autonomia do time).",
+        hook: "Enquanto Fowler foca no controle social e na reversibilidade, Richards e Ford formulam as leis matematicamente incontornáveis...",
+        tip: "Enfatize a citação: 'O valor do arquiteto é inversamente proporcional ao número de decisões que só ele toma'."
+      },
+      {
+        id: 5,
+        title: "Richards & Ford: O Império dos Trade-offs",
+        subtitle: "Fundamentals of Software Architecture // Leis da Engenharia",
+        chamada: "Primeira Lei: Tudo em arquitetura é um trade-off. Segunda Lei: O 'porquê' supera o 'como'.",
+        nota: "A amplitude técnica (conhecer a variedade de soluções) supera a profundidade cega em uma única tecnologia.",
+        visualType: "richards_tradeoffs",
+        speech: "A dupla Richards e Ford nos traz as duas leis fundamentais que funcionam como vacina contra o preciosismo técnico.",
+        explain: "Explique que qualquer escolha técnica traz dores que devemos aceitar conscientemente. Não existem soluções perfeitas.",
+        hook: "Para que esses trade-offs técnicos façam sentido estratégico, precisamos conectar o código ao negócio, o que nos leva a Gregor Hohpe...",
+        tip: "Se alguém defender uma tecnologia alegando zero pontos negativos, desafie a sala a encontrar as dores ocultas."
+      },
+      {
+        id: 6,
+        title: "Gregor Hohpe: O Elevador de Arquitetura",
+        subtitle: "The Software Architect Elevator // Conexão Negócio & Código",
+        chamada: "O arquiteto transita rapidamente entre a estratégia do Ático e a execução na Sala de Máquinas.",
+        nota: "Arquitetura eficaz cria 'opções financeiras': adia custos de infraestrutura enquanto a incerteza do negócio for alta.",
+        visualType: "hohpe_elevador",
+        speech: "Hohpe nos ensina que o bom arquiteto é um tradutor dinâmico que viaja pelo elevador corporativo, conectando tecnologia e estratégia.",
+        explain: "Mostre o perigo de ficar preso na cobertura (só slides) ou só no porão (codificando sem olhar para a estratégia de negócio).",
+        hook: "Com o repertório dos três autores consolidado, vamos cruzar suas ideias para entender a sinergia entre eles...",
+        tip: "Use a metáfora do elevador express: conseguir conversar com o C-level e com o dev na mesma hora."
+      },
+      {
+        id: 7,
+        title: "Síntese: A Conexão dos Três Autores",
+        subtitle: "Matriz Integrada // Visão Holística da Engenharia",
+        chamada: "Fowler cuida das pessoas e do tempo; Richards & Ford das leis; Hohpe da conexão com o negócio.",
+        nota: "A junção das três obras gera a maturidade necessária para tomarmos decisões científicas no dia a dia.",
+        visualType: "sintese_autores",
+        speech: "Notem a elegância desta combinação: Fowler olha as pessoas e a reversibilidade; Richards e Ford nos dão o rigor analítico dos trade-offs; Hohpe nos conecta ao valor de negócio.",
+        explain: "Passe rapidamente pela matriz mostrando que nenhum autor sozinho é suficiente.",
+        hook: "Com essa base teórica bem amarrada, podemos responder à provocação essencial: por que precisamos estudar fundamentos?",
+        tip: "Consolide que esses autores formam a espinha dorsal de todo o Ciclo 00."
+      },
+      {
+        id: 8,
+        title: "Por que falar de Fundamentos?",
+        subtitle: "Sistemas Estruturais // Alicerce e Prevenção do Caos",
+        chamada: "A arquitetura está em todo software. Se não for deliberada, ela converge para o Big Ball of Mud.",
+        nota: "*Big Ball of Mud: Padrão antiarquitetural onde o código se torna um emaranhado confuso e altamente acoplado sem limites claros.",
+        visualType: "fundacao_alicerce",
+        speech: "Antes de discutirmos ferramentas ou nuvem, precisamos entender que a arquitetura existe em todo sistema — quer tenhamos planejado ou não.",
+        explain: "Explique que a ausência de planejamento deliberado faz o sistema convergir naturalmente para a entropia e acoplamento desordenado.",
+        hook: "Para evitarmos essa armadilha, precisamos primeiro desmistificar o que definitivamente NÃO É arquitetura...",
+        tip: "Defina o 'Big Ball of Mud' de forma bem-humorada para que todos reconheçam sistemas legados difíceis de alterar."
+      },
+      {
+        id: 9,
+        title: "O que NÃO É Arquitetura",
+        subtitle: "Desmistificando o Tema // Limites do Escopo Arquitetural",
+        chamada: "Arquitetura NÃO é organização local de pastas, escolha de frameworks ou adoção de design patterns isolados.",
+        nota: "Decisões de baixo impacto que afetam apenas um módulo local são de responsabilidade do Design de Projeto da squad.",
+        visualType: "o_que_nao_e",
+        speech: "É fundamental quebrarmos o mito de que arquitetura é decidir estrutura de pastas ou qual biblioteca instalar no repositório.",
+        explain: "Destaque os itens com X laranja na tela. Organização de pacotes e uso de padrões locais (como Factory) não são decisões de arquitetura.",
+        hook: "Se essas decisões locais não são arquitetura, como nós as chamamos no dia a dia da engenharia? Usamos o termo Design de Projeto...",
+        tip: "Remova a culpa dos devs: escolher uma pasta ou biblioteca local é ótimo, mas pertence a outro escopo."
+      },
+      {
+        id: 10,
+        title: "Arquitetura vs. Design (Grady Booch)",
+        subtitle: "Diferenciação Crítica // 'Toda arquitetura é design...'",
+        chamada: "Toda arquitetura é design, mas nem todo design é arquitetura. O divisor é o custo de mudança.",
+        nota: "Saber essa diferença evita que a guilda perca tempo discutindo detalhes locais que cabem ao desenvolvedor sênior refatorar.",
+        visualType: "booch_quote",
+        speech: "Para evitarmos debates sem fim, recorremos à frase clássica de Grady Booch. Ela define o divisor de águas entre decisões locais e sistêmicas.",
+        explain: "Explique que refatorar um trecho de código interno leva horas; reverter uma escolha de banco ou protocolo de borda leva meses.",
+        hook: "Vamos olhar em detalhes para a primeira dessas camadas locais: o Design de Projeto...",
+        tip: "Reforce que o foco da guilda é economizar energia do time focando no que é difícil de reverter."
+      },
+      {
+        id: 11,
+        title: "O que é Design de Projeto?",
+        subtitle: "Organização Local // Código Limpo & Refatoração na Squad",
+        chamada: "Foco na estrutura interna do código dentro de um único repositório ou microsserviço.",
+        nota: "Decisões táticas de baixo custo de reversão. Padrões locais como Factory, Strategy e Injeção de Dependências.",
+        visualType: "design_projeto",
+        speech: "O Design de Projeto lida com a organização interna do código. Se você errar a estrutura de classes de um serviço, refatora em uma tarde.",
+        explain: "Mostre que a responsabilidade do Design de Projeto pertence ao time de desenvolvimento e aos testes unitários locais.",
+        hook: "Vamos ver um exemplo prático de código para entender como o Design de Projeto se materializa...",
+        tip: "Aponte para a barra lateral que indica [DESIGN DE PROJETO EM FOCO]."
+      },
+      {
+        id: 12,
+        title: "Exemplo Prático: Design de Projeto no Código",
+        subtitle: "Demonstração // Injeção de Dependências & Strategy no maas-account",
+        chamada: "Organização elegante de classes e interfaces para isolar regras de negócio locais.",
+        nota: "O uso de dependências abstratas facilita a criação de mocks em testes de unidade sem impactar a rede.",
+        visualType: "code_project_design",
+        speech: "Vejam esse exemplo no microsserviço maas-account: usamos Injeção de Dependência para isolar o leitor de permissões.",
+        explain: "Mostre que o código é limpo e testável. Se mudarmos do Redis para memória, o resto do domínio nem percebe.",
+        hook: "Acima da organização interna do código, temos uma camada que afeta a saúde mental do desenvolvedor: a Ergonomia de Software...",
+        tip: "Destaque a clareza do código sem jargões desnecessários."
+      },
+      {
+        id: 13,
+        title: "O que é Ergonomia de Software?",
+        subtitle: "DevEx & Carga Cognitiva // Facilitadores da Engenharia",
+        chamada: "Redução da carga mental e do atrito que o dev enfrenta para construir, testar e publicar código.",
+        nota: "Engloba tanto a clareza das APIs internas quanto a eficiência de plataforma (pipelines de CI/CD e esteiras automatizadas).",
+        visualType: "ergonomia_def",
+        speech: "A ergonomia estuda a adaptação das ferramentas ao ser humano. Na nossa engenharia, é a redução da fadiga cognitiva.",
+        explain: "Explique que se para publicar um ajuste o dev precisa passar por processos manuais dolorosos, a ergonomia está quebrada.",
+        hook: "Veja a diferença drástica entre um ambiente de baixa ergonomia e outro de alta ergonomia no nosso fluxo diário...",
+        tip: "Pergunte ao time: 'Quantas vezes vocês já sentiram medo ou cansaço antes de realizar um deploy?'."
+      },
+      {
+        id: 14,
+        title: "Ergonomia na Prática: Código Ruim vs. Bom & GMUDs",
+        subtitle: "Comparativo Real // Da API Local à Esteira de Deploy Automatizada",
+        chamada: "Baixa ergonomia gera medo e atrasos. Alta ergonomia usa CI/CD e testes para automação de GMUDs.",
+        nota: "*GMUD: Gestão de Mudanças. No Magalu, esteiras de CI/CD robustas automatizam validações e reduzem o atrito burocrático.",
+        visualType: "ergonomia_code_cicd",
+        speech: "Notem o contraste: do lado esquerdo, uma API confusa e deploys manuais com GMUDs burocráticas. Do lado direito, código fluente e CI/CD automatizado.",
+        explain: "Mostre como a automação de testes e validações na esteira de CI/CD transforma a GMUD manual em um processo transparente e rápido.",
+        hook: "Agora que entendemos o código local e a ergonomia, podemos subir um degrau para o Design de Arquitetura...",
+        tip: "Conecte a palavra GMUD à realidade operacional da empresa para gerar identificação imediata."
+      },
+      {
+        id: 15,
+        title: "O que é Design de Arquitetura?",
+        subtitle: "Decisões Significativas // Fronteiras de Rede & Atributos de Qualidade",
+        chamada: "Decisões estruturais que governam os limites das aplicações e possuem alto custo de mudança.",
+        nota: "Envolve protocolos de comunicação, escolhas de bancos de dados, estratégia de mensageria e garantia dos *-ilities*.",
+        visualType: "design_arquitetura",
+        speech: "O Design de Arquitetura opera na esfera das decisões significativas, caras e difíceis de reverter no futuro.",
+        explain: "Destaque a diferença: mudar uma interface Java leva horas; trocar a estratégia de comunicação de REST para Kafka leva meses.",
+        hook: "Para fechar esse bloco com clareza total, vamos olhar para o organograma aninhado que conecta essas três camadas...",
+        tip: "Aponte na barra lateral que chegamos ao nível de [DESIGN DE ARQUITETURA]."
+      },
+      {
+        id: 16,
+        title: "Comparativo: Escopos da Engenharia de Software",
+        subtitle: "Organograma Aninhado // Visão Unificada das Camadas",
+        chamada: "Design de Projeto ⊂ Ergonomia de Software ⊂ Design de Arquitetura.",
+        nota: "Este diagrama mostra o aninhamento dos três níveis: o código local (Design de Projeto) e o fluxo (Ergonomia) estão contidos nas fronteiras sistêmicas (Design de Arquitetura).",
+        visualType: "organograma_escopos",
+        speech: "Este diagrama resume perfeitamente o nosso nivelamento: o Design de Projeto vive no código; a Ergonomia cuida do fluxo e DevEx; o Design de Arquitetura rege as fronteiras e sustentabilidade do sistema.",
+        explain: "Explique que este slide funciona como o mapa consolidado dos escopos técnicos antes de entrarmos nas 4 dimensões formais da arquitetura.",
+        hook: "Com os escopos bem delimitados, vamos entender do que a Arquitetura de Software é formalmente composta...",
+        tip: "Gaste 1 minuto neste slide. Ele é o resumo definitivo do alinhamento conceitual do grupo."
+      },
+      {
+        id: 17,
+        title: "As Quatro Dimensões da Arquitetura",
+        subtitle: "Richards & Ford // A Matriz Completa do Sistema",
+        chamada: "A arquitetura é explicada por 4 dimensões que coexistem: Estrutura, Características (-ilities), Decisões e Princípios.",
+        nota: "*'-ilities': Sufixo em inglês para atributos não funcionais (Scalability, Maintainability, Reliability), chamados em português de Atributos de Qualidade.",
+        visualType: "quatro_dimensoes",
+        speech: "Richards e Ford definem que arquitetura não é só o desenho de caixinhas. Ela é composta por quatro dimensões simultâneas, incluindo as chamadas '-ilities'.",
+        explain: "Explique o termo '-ilities': em inglês, os atributos de qualidade terminam com o sufixo -ility (Scalability, Maintainability, Availability). Em português, são nossos Atributos de Qualidade (Escalabilidade, Manutenibilidade, Disponibilidade).",
+        hook: "Com a definição formal e as quatro dimensões em mãos, podemos desmistificar como surgem as demandas de arquitetura no dia a dia...",
+        tip: "Use o exemplo de coordenadas 3D para ilustrar por que precisamos de todas as 4 dimensões."
+      },
+      {
+        id: 18,
+        title: "Definindo Arquitetura de Software",
+        subtitle: "Síntese dos Autores // A Definição do Magalu Labs",
+        chamada: "Arquitetura é a estrutura do sistema + características de qualidade + decisões + princípios + trade-offs.",
+        nota: "*Trade-off: Análise comparativa onde se aceita uma perda conhecida em troca de um benefício estrutural estratégico.",
+        visualType: "definicao_arquitetura",
+        speech: "Consolidando tudo o que vimos: Arquitetura de Software é a combinação harmoniosa da estrutura com atributos de qualidade e restrições de engenharia.",
+        explain: "Reforce que arquitetura não é estática; ela evolui conforme as necessidades do negócio mudam.",
+        hook: "Mas de onde vêm as demandas que nos forçam a tomar essas decisões arquiteturais?",
+        tip: "Enfatize a palavra 'Trade-off' como o pilar do pensamento maduro de engenharia."
+      },
+      {
+        id: 19,
+        title: "Mitos & Origem das Demandas de Arquitetura",
+        subtitle: "Origem do Trabalho // De Onde Vêm as Necessidades?",
+        chamada: "Arquitetura não surge 'do nada' na sprint nem por vontade de usar tecnologias modinhas.",
+        nota: "Demandas reais nascem da escala de negócio, custos de nuvem, requisitos de segurança, regulação ou volumetria.",
+        visualType: "origem_demandas",
+        speech: "Existe o mito de que arquitetura nasce da vontade do desenvolvedor de testar uma biblioteca nova. Demandas reais nascem das dores do negócio.",
+        explain: "Mostre que volumetria na Black Friday, custos de nuvem pública e requisitos regulatórios é que motivam mudanças arquiteturais.",
+        hook: "Agora que entendemos a origem das demandas, quem são as pessoas que executam esses papéis na empresa?",
+        tip: "Conecte as demandas com os desafios de crescimento da Vertical Sellers no Magalu."
+      },
+      {
+        id: 20,
+        title: "Tipos de Arquitetos e Suas Atuações",
+        subtitle: "Taxonomia de Papéis // Mapeamento de Escopos no Magalu Labs",
+        chamada: "Corporativo (Estratégia/ROI) ➔ Soluções (Ponta a Ponta) ➔ Especialista (Domínio Niche) ➔ Software (Aplicação).",
+        nota: "Nenhum papel é superior ao outro. São escopos complementares de atuação que transitam pelo Elevador de Hohpe.",
+        visualType: "tipos_arquitetos",
+        speech: "Para que a guilda funcione com fluidez, precisamos entender que 'arquiteto' não é um cargo único e isolado.",
+        explain: "Apresente os 4 papéis: Corporativo (visão macro/custos), Soluções (integrações), Especialista (K8s/Segurança) e Software (código local).",
+        hook: "Para registrar e comunicar essas decisões estratégicas e locais sem burocracia, usamos o nosso arsenal prático de comunicação...",
+        tip: "Aclare que desenvolvedores seniores frequentemente atuam no papel de Arquitetos de Software."
+      },
+      {
+        id: 21,
+        title: "O Arsenal Prático de Comunicação",
+        subtitle: "Documentação Viva // ADRs, RFCs, C4 Model e Post-Mortems",
+        chamada: "Comunicação técnica ágil: ADRs para decisões, RFCs para propostas, C4 Model e Post-Mortems.",
+        nota: "Documentos curtos salvos em Markdown no Git (`docs/adrs/`) indexados no Confluence, com diagramas C4 em múltiplos níveis.",
+        visualType: "arsenal_comunicacao",
+        speech: "Não acreditamos em especificações gigantes de 100 páginas. Comunicamos arquitetura de forma viva com ADRs, RFCs e diagramas no padrão C4 Model.",
+        explain: "Apresente os 4 artefatos: ADR (decisão), RFC (proposta), C4 Model (Contexto, Contêineres, Componentes, Código) e Post-Mortem.",
+        hook: "Com esse arsenal em mãos, podemos subir a visão para o topo do elevador e entender por que a Arquitetura Corporativa é vital...",
+        tip: "Incentive os devs: 'Uma boa ADR tem menos de duas páginas e pode ser escrita em 20 minutos'."
+      },
+      {
+        id: 22,
+        title: "Arquitetura Corporativa (Enterprise Architecture)",
+        subtitle: "Visão Macro // Alinhamento Estratégico & Portfólio de Sistemas",
+        chamada: "Garante que o ecossistema de TI sirva aos objetivos de crescimento, margem e continuidade do negócio.",
+        nota: "Por que entender EA? Permite que os devs compreendam a origem de orçamentos, ROI e restrições de portfólio que chegam às squads.",
+        visualType: "arquitetura_corporativa",
+        speech: "A Arquitetura Corporativa olha para o mapa geral da empresa. Ela pergunta: 'Essa iniciativa faz sentido para a estratégia financeira do Magalu?'. Entender EA evita que tomemos decisões locais isoladas da realidade da empresa.",
+        explain: "Mostre que o foco aqui é a sustentabilidade do negócio de longo prazo, a eficiência de custos em grande escala e a visão de portfólio.",
+        hook: "E como equilibrar essa visão corporativa com a velocidade das squads sem criar burocracias? É aí que entra o TOGAF...",
+        tip: "Destaque que a Arquitetura Corporativa evita que diferentes áreas comprem ferramentas duplicadas sem necessidade."
+      },
+      {
+        id: 23,
+        title: "TOGAF, Agilidade & Intenção do Magalu Labs",
+        subtitle: "Governança Sem Burocracia // O Equilíbrio da Guilda",
+        chamada: "O papel do TOGAF é a governança macro (ADM). No Labs, buscamos seu rigor estratégico usando ferramentas ágeis (ADRs/RFCs).",
+        nota: "TOGAF alinha a TI aos objetivos de negócio corporativos. Nossa agilidade sustentável depende de Testability + Deployability.",
+        visualType: "togaf_agil",
+        speech: "O TOGAF nos dá a disciplina de governança corporativa. No Magalu Labs, capturamos esse alinhamento de negócio usando ferramentas leves.",
+        explain: "Detilhe o papel do TOGAF em grandes corporações e a nossa intenção de aplicar sua essência sem criar burocracias nas squads.",
+        hook: "Com todo este repertório, escopos e ferramentas consolidados, vamos para os nossos exercícios práticos em grupo!",
+        tip: "Reforce que agilidade sem arquitetura é apenas acúmulo acelerado de dívida técnica."
+      },
+      {
+        id: 24,
+        title: "EXERCÍCIO 1 - Case Magalu Cloud: O Desafio",
+        subtitle: "Estudo de Caso // Nuvem, Custos & Governança",
+        chamada: "Provocação: Como exercitar o Pensamento Arquitetural ao migrar para a nuvem própria?",
+        nota: "Este exercício busca exercitar a reflexão de trade-offs, raio de impacto (blast radius) e ROI na migração para a Magalu Cloud.",
+        visualType: "exercicio_cloud_desafio",
+        speech: "Time, vamos para o nosso primeiro exercício prático! O Magalu está migrando serviços críticos para a Magalu Cloud. Em vez de decorar papéis, vamos exercitar o Pensamento Arquitetural: quais são os riscos, trade-offs e limites dessa decisão?",
+        explain: "Incentive o time a refletir sobre trade-offs financeiros e operacionais. Provoque a sala a pensar no raio de impacto e no custo de reversibilidade de manter ou migrar os serviços.",
+        hook: "Vamos ver qual é o raciocínio arquitetural e o consenso da guilda para esse caso...",
+        tip: "Estimule chutes e hipóteses do grupo sobre risco x economia de escala."
+      },
+      {
+        id: 25,
+        title: "EXERCÍCIO 1 - Case Magalu Cloud: Resposta & Consenso",
+        subtitle: "Estudo de Caso // Síntese de Papéis & ROI",
+        chamada: "Pensamento Arquitetural: Separar viabilidade de ROI (Ático) do raio de impacto na infraestrutura (Sala de Máquinas).",
+        nota: "Consenso da Guilda: A decisão arquitetural analisa a economia de escala x risco operacional na camada física de Kubernetes e VPCs.",
+        visualType: "exercicio_cloud_resposta",
+        speech: "Excelente raciocínio! O Pensamento Arquitetural nos faz ver que a viabilidade financeira e ROI de longo prazo são analisados no Ático, enquanto a engenharia de resiliência e migração física acontecem na Sala de Máquinas.",
+        explain: "Apresente o consenso e mostre como a análise de trade-offs de custo e resiliência conecta as duas pontas da organização.",
+        hook: "Agora vamos para o nosso segundo desafio, focado em alta volumetria nas APIs da Vertical Sellers...",
+        tip: "Reforce como o pensamento analítico precede a escolha de qualquer tecnologia de nuvem."
+      },
+      {
+        id: 26,
+        title: "EXERCÍCIO 2 - Case ID Magalu (Sellers): O Desafio",
+        subtitle: "Estudo de Caso // Autenticação de Sellers & Latência de Rede",
+        chamada: "Provocação: Como proteger as APIs dos Sellers em picos de vendas sem gerar gargalos de rede?",
+        nota: "Cenário Real da Vertical Sellers: Milhares de lojistas atualizando estoque e pedidos simultaneamente no portal e APIs.",
+        visualType: "exercicio_id_desafio",
+        speech: "Pessoal, no segundo exercício, pensem no portal e APIs da Vertical Sellers: em picos de vendas, milhares de lojistas atualizam estoque e pedidos ao mesmo tempo. Se validarmos o login e token do Seller fazendo chamadas de rede síncronas a cada requisição, o que acontece?",
+        explain: "Lance as perguntas de Pensamento Arquitetural para a sala: 1) Qual o impacto na latência? 2) O que ocorre se o servidor de login oscilar? 3) Como isolar o código do Seller para que ele não dependa da SDK proprietária do ID Magalu?",
+        hook: "Com base nas hipóteses e trade-offs analisados, vamos ver o consenso da engenharia...",
+        tip: "Deixe os devs chutarem alternativas de arquitetura de borda (JWKS) e abstrações no código local (Adapter Pattern)."
+      },
+      {
+        id: 27,
+        title: "EXERCÍCIO 2 - Case ID Magalu (Sellers): Resposta & Consenso",
+        subtitle: "Estudo de Caso // Reversibilidade & Latência Zero na Borda",
+        chamada: "Pensamento Arquitetural: Validação offline na borda (JWKS) e desacoplamento de SDK no código local (Adapter).",
+        nota: "Consenso da Guilda: 1) Design de Arquitetura: JWKS no Gateway para evitar hops de rede. 2) Design de Projeto: PermissionsAdapter para garantir Reversibilidade de Fowler.",
+        visualType: "exercicio_id_resposta",
+        speech: "Perfeito! O Pensamento Arquitetural nos levou às duas respostas: validamos o token JWT de forma offline na Borda com JWKS para latência zero nas APIs de Sellers, e usamos um Adapter local para manter a Reversibilidade de Fowler.",
+        explain: "Mostre como a análise de trade-offs uniu performance de rede (Borda) e desacoplamento de código (Design de Projeto). Se trocarmos o provedor de identidade no futuro, o core da Vertical Sellers não sofre impacto.",
+        hook: "Com essa reflexão consolidada, vamos transformar esse aprendizado em ações práticas para a nossa semana...",
+        tip: "Enfatize a palavra 'Reversibilidade' e 'Latência de Rede' para fechar com chave de ouro o raciocínio."
+      },
+      {
+        id: 28,
+        title: "EXERCÍCIO FINAL: O que muda na segunda-feira?",
+        subtitle: "Plano de Ação // Compromisso do Time & Reversibilidade",
+        chamada: "Regra de Ouro: Aplicar a Regra de Reversibilidade de Fowler com ações práticas de engenharia.",
+        nota: "Abertura de ADRs para adiar escolhas caras, escrita de RFCs para propor Adapters locais e automação de validações na CI/CD.",
+        visualType: "checklist_segunda",
+        speech: "Chegamos ao compromisso prático da nossa semana: aplicar a Regra de Reversibilidade de Fowler no nosso backlog diário.",
+        explain: "Chame o Documentador para projetar a tela do Confluence e registrar os responsáveis (DRIs) para as ações acordadas.",
+        hook: "Com essas ações registradas, podemos encerrar o nosso primeiro encontro com a provocação final...",
+        tip: "Garanta que cada ação registrada no Confluence tenha um nome e um prazo definidos."
+      },
+      {
+        id: 29,
+        title: "Consolidando o Pensamento Arquitetural",
+        subtitle: "Fechamento & Provocação Final",
+        chamada: "Pensar arquiteturalmente é substituir preferências pessoais por análises científicas de trade-offs.",
+        nota: "O sucesso do arquiteto mentor (Oryzus) é o crescimento técnico e a autonomia de todo o time de engenharia.",
+        visualType: "fechamento",
+        speech: "Para encerrarmos o nosso primeiro encontro, deixo esta provocação final: pensar arquiteturalmente é substituir preferências pessoais por análises científicas.",
+        explain: "Agradeça a presença de todos e reforce que a guilda pertence aos desenvolvedores.",
+        hook: "Muito obrigado a todos e nos vemos no próximo ciclo da nossa guilda!",
+        tip: "Encerre com entusiasmo e aplausos para o engajamento do time."
+      }
+    ];
+
+    let currentSlideIndex = 0;
+    let presenterWindow = null;
+    let timerInterval = null;
+    let timerSeconds = 0;
+    let isTimerRunning = false;
+    let presenterFontSize = 18; // px
+
+    const slideTitle = document.getElementById('slide-title');
+    const slideSubtitle = document.getElementById('slide-subtitle');
+    const slideBadge = document.getElementById('slide-badge');
+    const slideChamada = document.getElementById('slide-chamada');
+    const slideNota = document.getElementById('slide-nota');
+    const slideContentArea = document.getElementById('slide-content-area');
+    const headerSlideCounter = document.getElementById('header-slide-counter');
+    const progressPercentage = document.getElementById('progress-percentage');
+    const progressBarFill = document.getElementById('progress-bar-fill');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const drawerSpeech = document.getElementById('drawer-speech');
+    const drawerExplain = document.getElementById('drawer-explain');
+    const drawerHook = document.getElementById('drawer-hook');
+    const drawerPanel = document.getElementById('drawer-panel');
+
+    function renderVisualContent(slide) {
+      switch(slide.visualType) {
+        case "capa":
+          return `
+            <div class="flex flex-col items-center justify-center text-center space-y-6 py-6 font-sans">
+              <div class="w-20 h-20 rounded-2xl bg-blueprint-bg border-2 border-blueprint-orange flex items-center justify-center text-blueprint-orange font-mono font-bold text-2xl shadow-xl shadow-orange-950/30">
+                &lt;/&gt;
+              </div>
+              <div class="space-y-2 max-w-2xl">
+                <span class="text-blueprint-cyan font-mono text-xs tracking-widest block uppercase">LUIZALABS // GUILDA DE ARQUITETURA</span>
+                <h2 class="text-xl md:text-2xl font-bold text-slate-200">Alinhamento Científico & Mapeamento de Trade-offs</h2>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg font-mono text-xs text-left">
+                <div class="p-3 bg-blueprint-bg border border-blueprint-border rounded-lg text-slate-300">
+                  <strong class="text-blueprint-orange block mb-1">01. LINGUAGEM COMUM</strong>
+                  Unificação de vocabulário e conceitos estruturais.
+                </div>
+                <div class="p-3 bg-blueprint-bg border border-blueprint-border rounded-lg text-slate-300">
+                  <strong class="text-blueprint-cyan block mb-1">02. DEBATE PRÁTICO</strong>
+                  Decisões baseadas em dados e reversibilidade.
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "papeis":
+          return `
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 font-sans text-xs">
+              <div class="p-4 bg-blueprint-bg border border-blueprint-orange rounded-xl space-y-2">
+                <div class="flex items-center justify-between text-blueprint-orange font-mono font-bold">
+                  <span>FACILITADOR</span>
+                  <span>🎙️</span>
+                </div>
+                <p class="text-slate-300 leading-relaxed">Conduz a discussão técnica e o tempo sem ser o dono da verdade.</p>
+              </div>
+              <div class="p-4 bg-blueprint-bg border border-blueprint-cyan rounded-xl space-y-2">
+                <div class="flex items-center justify-between text-blueprint-cyan font-mono font-bold">
+                  <span>QUESTIONADOR</span>
+                  <span>🎯</span>
+                </div>
+                <p class="text-slate-300 leading-relaxed">Atirador de pedras formal que provoca reflexões sobre riscos e trade-offs.</p>
+              </div>
+              <div class="p-4 bg-blueprint-bg border border-emerald-500 rounded-xl space-y-2">
+                <div class="flex items-center justify-between text-emerald-400 font-mono font-bold">
+                  <span>DOCUMENTADOR</span>
+                  <span>📝</span>
+                </div>
+                <p class="text-slate-300 leading-relaxed">Registra decisões, aprendizados e planos práticos no Confluence.</p>
+              </div>
+              <div class="p-4 bg-blueprint-bg border border-purple-500 rounded-xl space-y-2">
+                <div class="flex items-center justify-between text-purple-400 font-mono font-bold">
+                  <span>TIMEKEEPER</span>
+                  <span>⏱️</span>
+                </div>
+                <p class="text-slate-300 leading-relaxed">Controla o cronômetro para garantir dinamismo e objetividade nas pautas.</p>
+              </div>
+            </div>
+          `;
+
+        case "repertorio_obras":
+          return `
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 font-sans">
+              <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-orange space-y-2">
+                <span class="text-blueprint-orange font-mono font-bold text-xs block">01 // MARTIN FOWLER</span>
+                <strong class="text-slate-100 font-bold block text-sm">"Who Needs an Architect?" (2003)</strong>
+                <p class="text-slate-300 text-xs leading-relaxed">Foco no construto social, papel do guia (Oryzus) e controle rigoroso da reversibilidade.</p>
+              </div>
+              <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-cyan space-y-2">
+                <span class="text-blueprint-cyan font-mono font-bold text-xs block">02 // RICHARDS & FORD</span>
+                <strong class="text-slate-100 font-bold block text-sm">"Fundamentals of Software Arch."</strong>
+                <p class="text-slate-300 text-xs leading-relaxed">O império dos trade-offs, as duas leis supremas e a matriz de 4 dimensões.</p>
+              </div>
+              <div class="p-4 bg-blueprint-bg rounded-xl border border-emerald-500 space-y-2">
+                <span class="text-emerald-400 font-mono font-bold text-xs block">03 // GREGOR HOHPE</span>
+                <span class="text-slate-100 font-bold block text-sm">"Software Architect Elevator"</span>
+                <p class="text-slate-300 text-xs leading-relaxed">O elevador corporativo transitando da estratégia do Ático ao código da Sala de Máquinas.</p>
+              </div>
+            </div>
+          `;
+
+        case "fowler_oryzus":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-orange space-y-3 font-sans">
+              <div class="flex items-center justify-between text-blueprint-orange font-mono font-bold text-xs">
+                <span>CONCEITO FOWLERIANO</span>
+                <span>PAPER IEEE 2003</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                <div class="p-3 bg-blueprint-card rounded-lg border border-red-500/50">
+                  <strong class="text-red-400 block font-mono mb-1">❌ ARCHITECTUS RELOADUS</strong>
+                  <p class="text-slate-300">Ditador da torre de marfim. Toma decisões isoladas precocemente, gerando gargalos e desengajamento no time.</p>
+                </div>
+                <div class="p-3 bg-blueprint-card rounded-lg border border-emerald-500">
+                  <strong class="text-emerald-400 block font-mono mb-1">✅ ARCHITECTUS ORYZUS (O GUIA)</strong>
+                  <p class="text-slate-300">Guia de montanha. Programa com o time, eleva a maturidade dos devs e adia decisões irreversíveis.</p>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "richards_tradeoffs":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-cyan space-y-3 font-sans">
+              <div class="text-blueprint-cyan font-mono font-bold text-xs">AS DUAS LEIS DA ENGENHARIA</div>
+              <div class="space-y-2 text-xs">
+                <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-border">
+                  <strong class="text-blueprint-orange font-mono block">1ª LEI: TUDO É UM TRADE-OFF</strong>
+                  <p class="text-slate-300">Se você acha que uma solução não tem pontos negativos, você ainda não os encontrou.</p>
+                </div>
+                <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-border">
+                  <strong class="text-blueprint-cyan font-mono block">2ª LEI: O "PORQUÊ" SUPERA O "COMO"</strong>
+                  <p class="text-slate-300">A justificativa do contexto e os trade-offs aceitos são mais importantes que a implementação técnica pura.</p>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "hohpe_elevador":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-emerald-500 space-y-3 font-sans">
+              <div class="text-emerald-400 font-mono font-bold text-xs">O ELEVADOR DE ARQUITETURA</div>
+              <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-border flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
+                <div class="text-center md:text-left">
+                  <strong class="text-blueprint-orange font-mono block">COBERTURA / ÁTICO</strong>
+                  <span class="text-slate-300">Estratégia de Negócios & ROI</span>
+                </div>
+                <div class="text-blueprint-cyan font-mono font-bold">⇅ ELEVADOR EXPRESSO ⇅</div>
+                <div class="text-center md:text-right">
+                  <strong class="text-emerald-400 font-mono block">PORÃO / SALA DE MÁQUINAS</strong>
+                  <span class="text-slate-300">Código, Infraestrutura & K8s</span>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "sintese_autores":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-border space-y-3 font-sans">
+              <span class="text-slate-300 font-mono font-bold text-xs block">MATRIZ COMPARATIVA DE CONCEPÇÕES</span>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
+                <div class="p-2.5 bg-blueprint-card rounded border border-blueprint-orange">
+                  <strong class="text-blueprint-orange block">FOWLER</strong>
+                  <span class="text-slate-300">Pessoas, Mentorias e Reversibilidade.</span>
+                </div>
+                <div class="p-2.5 bg-blueprint-card rounded border border-blueprint-cyan">
+                  <strong class="text-blueprint-cyan block">RICHARDS & FORD</strong>
+                  <span class="text-slate-300">Leis, Trade-offs e 4 Dimensões.</span>
+                </div>
+                <div class="p-2.5 bg-blueprint-card rounded border border-emerald-500">
+                  <strong class="text-emerald-400 block">HOHPE</strong>
+                  <span class="text-slate-300">Elevador Negócio-Código & Opções.</span>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "fundacao_alicerce":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-orange space-y-3 text-xs md:text-sm font-sans">
+              <div class="flex items-center justify-between text-blueprint-orange font-mono font-bold text-xs border-b border-blueprint-border/60 pb-2">
+                <span>DIAGNOSTICO ESTRUTURAL // RISCO DE NEGLIGÊNCIA</span>
+                <span class="text-blueprint-cyan font-mono">CONCEITO BASE</span>
+              </div>
+              <p class="text-slate-200 font-medium leading-relaxed">
+                A arquitetura está presente em todo software, seja ela planejada ou não.
+              </p>
+              <div class="p-3 bg-blueprint-card rounded-lg border border-red-500/60 space-y-1">
+                <strong class="text-red-400 font-mono block">⚠️ ALERTA DE ENTROPIA:</strong>
+                <p class="text-slate-300 text-xs">
+                  Sem escolhas deliberadas, o software converge por padrão para o <strong>Big Ball of Mud</strong> (caos acoplado e sem limites estruturais definidos).
+                </p>
+              </div>
+              <div class="p-2 bg-blueprint-card rounded text-slate-400 font-mono text-[11px]">
+                * Big Ball of Mud: Sistema cujas partes estão tão emaranhadas que qualquer alteração local causa efeitos colaterais imprevisíveis.
+              </div>
+            </div>
+          `;
+
+        case "o_que_nao_e":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-red-500/60 space-y-3 text-xs md:text-sm font-sans">
+              <div class="text-red-400 font-mono font-bold text-xs border-b border-blueprint-border/60 pb-2">
+                ❌ O QUE NÃO DEFINE A ARQUITETURA
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div class="p-3 bg-blueprint-card rounded border border-blueprint-border text-slate-300">
+                  <strong class="text-slate-100 block mb-1">1. PASTAS & ARQUIVOS</strong>
+                  Estrutura local de repositório.
+                </div>
+                <div class="p-3 bg-blueprint-card rounded border border-blueprint-border text-slate-300">
+                  <strong class="text-slate-100 block mb-1">2. FRAMEWORKS LOCAIS</strong>
+                  Escolha de libs de interface ou ORMs.
+                </div>
+                <div class="p-3 bg-blueprint-card rounded border border-blueprint-border text-slate-300">
+                  <strong class="text-slate-100 block mb-1">3. PATTERNS ISOLADOS</strong>
+                  Factories ou Strategies locais.
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "booch_quote":
+          return `
+            <div class="p-6 bg-blueprint-bg rounded-xl border-2 border-blueprint-cyan space-y-4 text-center font-sans">
+              <span class="text-blueprint-cyan font-mono text-xs block">GRADY BOOCH // CITAÇÃO CLÁSSICA</span>
+              <blockquote class="text-lg md:text-xl font-extrabold text-slate-100 italic leading-snug">
+                "Toda arquitetura é design, mas nem todo design é arquitetura."
+              </blockquote>
+              <p class="text-xs text-slate-300 max-w-xl mx-auto leading-relaxed">
+                O divisor de águas é o <strong>custo de mudança</strong>. Se o impacto for local e refatorável em horas, é Design de Projeto. Se impactar múltiplos times e a rede, é Design de Arquitetura.
+              </p>
+            </div>
+          `;
+
+        case "design_projeto":
+          return `
+            <div class="space-y-4 font-sans text-xs">
+              <!-- Stepper Header -->
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-2 font-mono text-[11px]">
+                <div class="p-2 bg-blueprint-card rounded-xl border-2 border-blueprint-orange text-blueprint-orange font-bold flex items-center justify-between shadow-lg">
+                  <span>1. DESIGN PROJETO</span>
+                  <span class="bg-orange-950/80 px-1.5 py-0.5 rounded text-[10px] text-blueprint-orange border border-orange-800">EM FOCO 🎯</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg/50 rounded-xl border border-blueprint-border/40 text-slate-400">
+                  <span>2. ERGONOMIA</span>
+                  <span class="text-[10px]">A DEFINIR ⌛</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg/50 rounded-xl border border-blueprint-border/40 text-slate-400">
+                  <span>3. DESIGN ARQUITETURA</span>
+                  <span class="text-[10px]">A DEFINIR ⌛</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg/50 rounded-xl border border-blueprint-border/40 text-slate-400">
+                  <span>4. VISÃO INTEGRADA</span>
+                </div>
+              </div>
+
+              <!-- Content Box: Definição + Exemplos Concretos -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-blueprint-card rounded-xl border-2 border-blueprint-orange space-y-3">
+                  <div class="flex items-center justify-between text-blueprint-orange font-mono font-bold">
+                    <span>DEFINIÇÃO DE DESIGN DE PROJETO</span>
+                    <span>🎯 PASSO 1 DE 3</span>
+                  </div>
+                  <p class="text-slate-200 text-xs leading-relaxed font-medium">
+                    Organização interna do código-fonte dentro de um único repositório ou microsserviço. Decisões táticas de baixo risco sistêmico e facilidade de refatoração local.
+                  </p>
+                  <div class="p-2.5 bg-blueprint-bg rounded-lg border border-blueprint-border text-[11px] text-slate-300">
+                    🔑 <strong>Custo de Mudança:</strong> Baixo (horas a poucos dias).<br>
+                    👤 <strong>Responsável:</strong> Squad / Devs locais.
+                  </div>
+                </div>
+
+                <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-cyan space-y-3">
+                  <span class="text-blueprint-cyan font-mono font-bold text-xs block uppercase">💡 EXEMPLOS CONCRETOS DE DESIGN DE PROJETO:</span>
+                  <ul class="space-y-2 text-slate-200 text-xs list-disc list-inside">
+                    <li><strong>Design Patterns Locais:</strong> Uso de <code>Strategy</code> para regras de cálculo ou <code>Factory</code>.</li>
+                    <li><strong>Isolamento de Interfaces:</strong> <code>PermissionsAdapter</code> para desacoplar bibliotecas externas.</li>
+                    <li><strong>Injeção de Dependências:</strong> Injeção via Spring (Java) ou pacotes nativos em Go/TypeScript.</li>
+                    <li><strong>Clean Code & Refatoração:</strong> Organização de pacotes, nomes de variáveis e separação de camadas.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "code_project_design":
+          return `
+            <div class="space-y-4 font-sans text-xs">
+              <!-- Stepper Header -->
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-2 font-mono text-[11px]">
+                <div class="p-2 bg-blueprint-card rounded-xl border-2 border-blueprint-orange text-blueprint-orange font-bold flex items-center justify-between shadow-lg">
+                  <span>1. DESIGN PROJETO</span>
+                  <span class="text-emerald-400 font-bold">CÓDIGO LOCAL ✓</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg/50 rounded-xl border border-blueprint-border/40 text-slate-400">
+                  <span>2. ERGONOMIA</span>
+                  <span class="text-[10px]">A DEFINIR ⌛</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg/50 rounded-xl border border-blueprint-border/40 text-slate-400">
+                  <span>3. DESIGN ARQUITETURA</span>
+                  <span class="text-[10px]">A DEFINIR ⌛</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg/50 rounded-xl border border-blueprint-border/40 text-slate-400">
+                  <span>4. VISÃO INTEGRADA</span>
+                </div>
+              </div>
+
+              <!-- Code snippet demonstration -->
+              <div class="p-4 bg-slate-950 rounded-xl border border-blueprint-border space-y-2 font-mono text-[11px] overflow-x-auto text-slate-200">
+                <div class="text-blueprint-cyan font-bold">// Exemplo: Isolamento local de regra com Injeção de Dependências em maas-account</div>
+                <div><span class="text-purple-400">public class</span> <span class="text-yellow-300">AccountService</span> {</div>
+                <div class="pl-4"><span class="text-purple-400">private final</span> PermissionsAdapter permissionsAdapter;</div>
+                <div class="pl-4 font-bold text-slate-400">// Injeção da interface isolada do provedor de identidade</div>
+                <div class="pl-4"><span class="text-purple-400">public</span> <span class="text-yellow-300">AccountService</span>(PermissionsAdapter adapter) {</div>
+                <div class="pl-8"><span class="text-purple-400">this</span>.permissionsAdapter = adapter;</div>
+                <div class="pl-4">}</div>
+                <div>}</div>
+              </div>
+            </div>
+          `;
+
+        case "ergonomia_def":
+          return `
+            <div class="space-y-4 font-sans text-xs">
+              <!-- Stepper Header -->
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-2 font-mono text-[11px]">
+                <div class="p-2 bg-blueprint-bg rounded-xl border border-emerald-500/60 text-emerald-400 font-bold flex items-center justify-between">
+                  <span>1. DESIGN PROJETO</span>
+                  <span>✓</span>
+                </div>
+                <div class="p-2 bg-blueprint-card rounded-xl border-2 border-blueprint-orange text-blueprint-orange font-bold flex items-center justify-between shadow-lg">
+                  <span>2. ERGONOMIA</span>
+                  <span class="bg-orange-950/80 px-1.5 py-0.5 rounded text-[10px] text-blueprint-orange border border-orange-800">EM FOCO 🎯</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg/50 rounded-xl border border-blueprint-border/40 text-slate-400">
+                  <span>3. DESIGN ARQUITETURA</span>
+                  <span class="text-[10px]">A DEFINIR ⌛</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg/50 rounded-xl border border-blueprint-border/40 text-slate-400">
+                  <span>4. VISÃO INTEGRADA</span>
+                </div>
+              </div>
+
+              <!-- Content Box: Definição + Exemplos Concretos -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-blueprint-card rounded-xl border-2 border-blueprint-orange space-y-3">
+                  <div class="flex items-center justify-between text-blueprint-orange font-mono font-bold">
+                    <span>DEFINIÇÃO DE ERGONOMIA DE SOFTWARE</span>
+                    <span>🎯 PASSO 2 DE 3</span>
+                  </div>
+                  <p class="text-slate-200 text-xs leading-relaxed font-medium">
+                    Adaptação das ferramentas e processos ao ser humano. Estuda a redução da carga mental (DevEx) e a eliminação do atrito na esteira de desenvolvimento e publicação.
+                  </p>
+                  <div class="p-2.5 bg-blueprint-bg rounded-lg border border-blueprint-border text-[11px] text-slate-300">
+                    ⚡ <strong>Foco Principal:</strong> Produtividade, segurança e saúde do dev.<br>
+                    🛡️ <strong>Impacto:</strong> Eliminação de deploys manuais e GMUDs burocráticas.
+                  </div>
+                </div>
+
+                <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-cyan space-y-3">
+                  <span class="text-blueprint-cyan font-mono font-bold text-xs block uppercase">💡 EXEMPLOS CONCRETOS DE ERGONOMIA:</span>
+                  <ul class="space-y-2 text-slate-200 text-xs list-disc list-inside">
+                    <li><strong>Automação de Pipelines:</strong> CI/CD com execuções automáticas de linter, testes e build.</li>
+                    <li><strong>Automação de GMUDs no Magalu:</strong> Validação automatizada de regras sem burocracia manual.</li>
+                    <li><strong>Ambientes Efêmeros:</strong> Containers Docker para testes locais rápidos com mocks.</li>
+                    <li><strong>APIs Internas Fluentes:</strong> SDKs com autocomplete e mensagens de erro claras ao dev.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "ergonomia_code_cicd":
+          return `
+            <div class="space-y-4 font-sans text-xs">
+              <!-- Stepper Header -->
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-2 font-mono text-[11px]">
+                <div class="p-2 bg-blueprint-bg rounded-xl border border-emerald-500/60 text-emerald-400 font-bold flex items-center justify-between">
+                  <span>1. DESIGN PROJETO</span>
+                  <span>✓</span>
+                </div>
+                <div class="p-2 bg-blueprint-card rounded-xl border-2 border-blueprint-orange text-blueprint-orange font-bold flex items-center justify-between shadow-lg">
+                  <span>2. ERGONOMIA</span>
+                  <span class="text-emerald-400 font-bold">DEVEX & FLUXO ✓</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg/50 rounded-xl border border-blueprint-border/40 text-slate-400">
+                  <span>3. DESIGN ARQUITETURA</span>
+                  <span class="text-[10px]">A DEFINIR ⌛</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg/50 rounded-xl border border-blueprint-border/40 text-slate-400">
+                  <span>4. VISÃO INTEGRADA</span>
+                </div>
+              </div>
+
+              <!-- CI/CD Diagram Demonstrator -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="p-3 bg-red-950/30 border border-red-500/50 rounded-xl space-y-2">
+                  <span class="text-red-400 font-mono font-bold block text-[11px]">❌ BAIXA ERGONOMIA (ATRITO MANUAL)</span>
+                  <p class="text-slate-300 text-[11px]">Deploy manual síncrono, formulários extensos de GMUD, ausência de mocks locais e medo de publicar código.</p>
+                </div>
+                <div class="p-3 bg-emerald-950/30 border border-emerald-500/50 rounded-xl space-y-2">
+                  <span class="text-emerald-400 font-mono font-bold block text-[11px]">✅ ALTA ERGONOMIA (ESTEIRA AUTOMATIZADA)</span>
+                  <div class="p-2 bg-blueprint-bg rounded border border-emerald-500/40 text-[10px] font-mono text-slate-200 flex items-center justify-between">
+                    <span>Git Push</span> ➔ <span>Lint/Test</span> ➔ <span>Auto-GMUD</span> ➔ <span>Deploy</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "design_arquitetura":
+          return `
+            <div class="space-y-4 font-sans text-xs">
+              <!-- Stepper Header -->
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-2 font-mono text-[11px]">
+                <div class="p-2 bg-blueprint-bg rounded-xl border border-emerald-500/60 text-emerald-400 font-bold flex items-center justify-between">
+                  <span>1. DESIGN PROJETO</span>
+                  <span>✓</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg rounded-xl border border-emerald-500/60 text-emerald-400 font-bold flex items-center justify-between">
+                  <span>2. ERGONOMIA</span>
+                  <span>✓</span>
+                </div>
+                <div class="p-2 bg-blueprint-card rounded-xl border-2 border-blueprint-orange text-blueprint-orange font-bold flex items-center justify-between shadow-lg">
+                  <span>3. DESIGN ARQUITETURA</span>
+                  <span class="bg-orange-950/80 px-1.5 py-0.5 rounded text-[10px] text-blueprint-orange border border-orange-800">EM FOCO 🎯</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg/50 rounded-xl border border-blueprint-border/40 text-slate-400">
+                  <span>4. VISÃO INTEGRADA</span>
+                </div>
+              </div>
+
+              <!-- Content Box: Definição + Exemplos Concretos -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-blueprint-card rounded-xl border-2 border-blueprint-orange space-y-3">
+                  <div class="flex items-center justify-between text-blueprint-orange font-mono font-bold">
+                    <span>DEFINIÇÃO DE DESIGN DE ARQUITETURA</span>
+                    <span>🎯 PASSO 3 DE 3</span>
+                  </div>
+                  <p class="text-slate-200 text-xs leading-relaxed font-medium">
+                    Decisões estruturais e significativas de engenharia que governam os limites das aplicações, fronteiras de rede, escolha de persistência e garantia dos atributos de qualidade (-ilities).
+                  </p>
+                  <div class="p-2.5 bg-blueprint-bg rounded-lg border border-blueprint-border text-[11px] text-slate-300">
+                    🚨 <strong>Custo de Mudança:</strong> Alto (semanas a meses).<br>
+                    🌐 <strong>Escopo:</strong> Comunicação entre serviços, resiliência e alta disponibilidade.
+                  </div>
+                </div>
+
+                <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-cyan space-y-3">
+                  <span class="text-blueprint-cyan font-mono font-bold text-xs block uppercase">💡 EXEMPLOS CONCRETOS DE DESIGN DE ARQUITETURA:</span>
+                  <ul class="space-y-2 text-slate-200 text-xs list-disc list-inside">
+                    <li><strong>Mensageria Assíncrona:</strong> Event-Driven Architecture com Kafka / RabbitMQ.</li>
+                    <li><strong>Estratégia de Persistência:</strong> Relacional (Postgres) vs NoSQL (DynamoDB).</li>
+                    <li><strong>Segurança na Borda:</strong> Validação offline de tokens (JWKS) no API Gateway.</li>
+                    <li><strong>Protocolos de Rede:</strong> gRPC para chamadas internas de baixa latência vs REST.</li>
+                    <li><strong>Atributos de Qualidade (-ilities):</strong> Garantia de vazão e escalabilidade na Black Friday.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "organograma_escopos":
+          return `
+            <div class="space-y-4 font-sans text-xs">
+              <!-- Stepper Header -->
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-2 font-mono text-[11px]">
+                <div class="p-2 bg-blueprint-bg rounded-xl border border-emerald-500/60 text-emerald-400 font-bold flex items-center justify-between">
+                  <span>1. DESIGN PROJETO</span>
+                  <span>✓</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg rounded-xl border border-emerald-500/60 text-emerald-400 font-bold flex items-center justify-between">
+                  <span>2. ERGONOMIA</span>
+                  <span>✓</span>
+                </div>
+                <div class="p-2 bg-blueprint-bg rounded-xl border border-emerald-500/60 text-emerald-400 font-bold flex items-center justify-between">
+                  <span>3. DESIGN ARQUITETURA</span>
+                  <span>✓</span>
+                </div>
+                <div class="p-2 bg-blueprint-card rounded-xl border-2 border-emerald-400 text-emerald-400 font-bold flex items-center justify-between shadow-lg">
+                  <span>4. VISÃO INTEGRADA</span>
+                  <span class="bg-emerald-950/80 px-1.5 py-0.5 rounded text-[10px] text-emerald-300 border border-emerald-800">CONCLUÍDO ✓</span>
+                </div>
+              </div>
+
+              <!-- Content Box: Nested Diagram -->
+              <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-cyan space-y-3">
+                <div class="flex items-center justify-between text-blueprint-cyan font-mono font-bold text-xs">
+                  <span>VISÃO ANINHADA DOS ESCOPOS TÉCNICOS</span>
+                  <span class="text-emerald-400">[TODOS OS NÍVEIS COMPREENDIDOS ✓]</span>
+                </div>
+                <div class="p-4 border-2 border-blueprint-orange rounded-xl bg-blueprint-card/80 space-y-3">
+                  <div class="flex justify-between items-center text-blueprint-orange font-mono font-bold">
+                    <span>1. DESIGN DE ARQUITETURA (Limites de Rede, Persistência & *-ilities*)</span>
+                    <span class="text-[10px] bg-orange-950/60 px-2 py-0.5 rounded border border-orange-700">Custo Alto</span>
+                  </div>
+                  <div class="p-3 border-2 border-blueprint-cyan rounded-lg bg-blueprint-bg/80 space-y-2">
+                    <div class="flex justify-between items-center text-blueprint-cyan font-mono font-bold">
+                      <span>2. ERGONOMIA DE SOFTWARE (DevEx, CI/CD & Automação de GMUDs)</span>
+                      <span class="text-[10px] bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-700">Fluxo Dev</span>
+                    </div>
+                    <div class="p-3 border border-emerald-500 rounded bg-emerald-950/40">
+                      <div class="flex justify-between items-center text-emerald-400 font-mono font-bold">
+                        <span>3. DESIGN DE PROJETO (Código Local, Classes & Patterns)</span>
+                        <span class="text-[10px] bg-emerald-950 px-2 py-0.5 rounded border border-emerald-700">Custo Baixo</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "organograma_escopos":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-cyan space-y-3 font-sans text-xs">
+              <div class="flex items-center justify-between text-blueprint-cyan font-mono font-bold text-xs">
+                <span>VISÃO ANINHADA DOS ESCOPOS</span>
+                <span class="text-emerald-400">[ESCOPOS COMPLETO DEFINIDO ✓]</span>
+              </div>
+              <div class="p-4 border-2 border-blueprint-orange rounded-xl bg-blueprint-card/80 space-y-3">
+                <strong class="text-blueprint-orange font-mono block">1. DESIGN DE ARQUITETURA (Limites de Rede & *-ilities*)</strong>
+                <div class="p-3 border-2 border-blueprint-cyan rounded-lg bg-blueprint-bg/80 space-y-2">
+                  <strong class="text-blueprint-cyan font-mono block">2. ERGONOMIA DE SOFTWARE (DevEx & CI/CD)</strong>
+                  <div class="p-3 border border-emerald-500 rounded bg-emerald-950/40">
+                    <strong class="text-emerald-400 font-mono block">3. DESIGN DE PROJETO (Código Local)</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "quatro_dimensoes":
+          return `
+            <div class="space-y-3 font-sans text-xs">
+              <div class="p-2 bg-blueprint-bg border border-emerald-500/50 rounded flex items-center justify-between font-mono text-[11px] text-emerald-400">
+                <span>ESCOPOS DE CÓDIGO E REDE CONCLUÍDOS ✓</span>
+                <span class="text-blueprint-cyan">AS 4 DIMENSÕES EM FOCO 🎯</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-orange">
+                  <strong class="text-blueprint-orange font-mono block mb-1">ESTRUTURA</strong>
+                  <p class="text-slate-300">Estilos arquiteturais (ex: Microsserviços, Monolito Modular, Event-Driven).</p>
+                </div>
+                <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-cyan">
+                  <strong class="text-blueprint-cyan font-mono block mb-1">CARACTERÍSTICAS (-ilities)</strong>
+                  <p class="text-slate-300 mb-1">Atributos não funcionais de qualidade do sistema.</p>
+                  <p class="text-[11px] text-slate-400 bg-blueprint-bg/80 p-1.5 rounded border border-blueprint-border">
+                    💡 <strong>Termo em Inglês:</strong> Sufixo <em>-ility</em> (ex: <em>Scalability, Maintainability, Availability</em>).<br>
+                    🇧🇷 <strong>Em Português:</strong> Atributos de Qualidade (Escalabilidade, Manutenibilidade, Disponibilidade, Resiliência).
+                  </p>
+                </div>
+                <div class="p-3 bg-blueprint-card rounded-lg border border-emerald-500">
+                  <strong class="text-emerald-400 font-mono block mb-1">DECISÕES ARQUITETURAIS</strong>
+                  <p class="text-slate-300">Regras rígidas e restrições impostas aos times (ex: obrigatoriedade de comunicação assíncrona para escrita).</p>
+                </div>
+                <div class="p-3 bg-blueprint-card rounded-lg border border-purple-500">
+                  <strong class="text-purple-400 font-mono block mb-1">PRINCÍPIOS DE DESIGN</strong>
+                  <p class="text-slate-300">Diretrizes e boas práticas recomendadas para orientar os desenvolvedores no dia a dia.</p>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "definicao_arquitetura":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-blue space-y-3 font-sans text-xs">
+              <span class="text-blueprint-cyan font-mono font-bold block">SÍNTESE CONCEITUAL</span>
+              <p class="text-slate-200 text-sm leading-relaxed">
+                "Arquitetura de Software consiste na <strong>Estrutura</strong> do sistema combinada com suas <strong>Características de Qualidade (-ilities)</strong>, <strong>Decisões Arquiteturais</strong> e <strong>Princípios de Design</strong>."
+              </p>
+            </div>
+          `;
+
+        case "origem_demandas":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-orange space-y-3 text-xs font-sans">
+              <span class="text-blueprint-orange font-mono font-bold block">ORIGEM DAS DEMANDAS REAIS</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div class="p-2.5 bg-blueprint-card rounded border border-blueprint-border text-slate-300">
+                  📈 Volumetria e Pico da Black Friday
+                </div>
+                <div class="p-2.5 bg-blueprint-card rounded border border-blueprint-border text-slate-300">
+                  💰 Redução de Custos de Nuvem
+                </div>
+                <div class="p-2.5 bg-blueprint-card rounded border border-blueprint-border text-slate-300">
+                  🔒 Segurança e Regulação (LGPD/PCI)
+                </div>
+                <div class="p-2.5 bg-blueprint-card rounded border border-blueprint-border text-slate-300">
+                  🚀 Autonomia de Deploy de Múltiplos Times
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "tipos_arquitetos":
+          return `
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 font-sans text-xs">
+              <div class="p-3 bg-blueprint-card rounded border border-blueprint-orange">
+                <strong class="text-blueprint-orange block font-mono">1. CORPORATIVO</strong>
+                <span class="text-slate-300">Estratégia, ROI e Portfólio Macro.</span>
+              </div>
+              <div class="p-3 bg-blueprint-card rounded border border-blueprint-cyan">
+                <strong class="text-blueprint-cyan block font-mono">2. SOLUÇÕES</strong>
+                <span class="text-slate-300">Integrações fim a fim entre domínios.</span>
+              </div>
+              <div class="p-3 bg-blueprint-card rounded border border-emerald-500">
+                <strong class="text-emerald-400 block font-mono">3. ESPECIALISTA</strong>
+                <span class="text-slate-300">Maestria em Nuvem, IA ou Segurança.</span>
+              </div>
+              <div class="p-3 bg-blueprint-card rounded border border-purple-500">
+                <strong class="text-purple-400 block font-mono">4. SOFTWARE</strong>
+                <span class="text-slate-300">Integridade interna da aplicação.</span>
+              </div>
+            </div>
+          `;
+
+        case "arsenal_comunicacao":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-cyan space-y-3 font-sans text-xs">
+              <span class="text-blueprint-cyan font-mono font-bold block uppercase">🛠️ O ARSENAL PRÁTICO DE COMUNICAÇÃO TÉCNICA</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-orange space-y-1">
+                  <strong class="text-blueprint-orange font-mono block">1. ADRs</strong>
+                  <span class="text-slate-200 font-semibold block">Architecture Decision Records</span>
+                  <p class="text-slate-300 text-[11px] leading-relaxed">Registro imutável de decisões técnicas significativas e seus contextos em Markdown no Git.</p>
+                </div>
+                <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-cyan space-y-1">
+                  <strong class="text-blueprint-cyan font-mono block">2. RFCs</strong>
+                  <span class="text-slate-200 font-semibold block">Request for Comments</span>
+                  <p class="text-slate-300 text-[11px] leading-relaxed">Propostas técnicas abertas para discussão colaborativa e alinhamento prévio da guilda.</p>
+                </div>
+                <div class="p-3 bg-blueprint-card rounded-lg border border-emerald-500 space-y-1">
+                  <strong class="text-emerald-400 font-mono block">3. C4 MODEL</strong>
+                  <span class="text-slate-200 font-semibold block">Diagramas em 4 Níveis</span>
+                  <p class="text-slate-300 text-[11px] leading-relaxed">Comunicação visual em níveis progressivos: Contexto, Contêineres, Componentes e Código.</p>
+                </div>
+                <div class="p-3 bg-blueprint-card rounded-lg border border-purple-400 space-y-1">
+                  <strong class="text-purple-400 font-mono block">4. POST-MORTEMS</strong>
+                  <span class="text-slate-200 font-semibold block">Análise Blameless</span>
+                  <p class="text-slate-300 text-[11px] leading-relaxed">Documentação de incidentes focada no aprendizado contínuo sem caça às bruxas.</p>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "arquitetura_corporativa":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-orange space-y-3 text-xs font-sans">
+              <span class="text-blueprint-orange font-mono font-bold block">ARQUITETURA CORPORATIVA (ENTERPRISE ARCHITECTURE - EA)</span>
+              <p class="text-slate-200 leading-relaxed">
+                Alinha os sistemas de TI com o modelo operacional da empresa, garantindo viabilidade financeira de longo prazo, governança de dados e retorno sobre investimento (ROI).
+              </p>
+              <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-cyan space-y-1">
+                <strong class="text-blueprint-cyan font-mono block">🎯 POR QUE PRECISAMOS ENTENDER ARQUITETURA CORPORATIVA?</strong>
+                <p class="text-slate-300 text-xs">
+                  Entender EA permite que os engenheiros compreendam as razões por trás das escolhas de portfólio, metas de custo em nuvem e direcionamento de ROI que descem do Ático, evitando que tomemos decisões locais desalinhadas da estratégia da empresa.
+                </p>
+              </div>
+            </div>
+          `;
+
+        case "togaf_agil":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-cyan space-y-3 font-sans text-xs">
+              <span class="text-blueprint-cyan font-mono font-bold block">TOGAF & GOVERNANÇA ÁGIL NO MAGALU LABS</span>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-orange space-y-1">
+                  <strong class="text-blueprint-orange font-mono block">🏛️ TOGAF (O RIGOR CORPORATIVO)</strong>
+                  <p class="text-slate-300 text-[11px] leading-relaxed">
+                    Framework corporativo que garante o alinhamento estratégico entre a TI e os objetivos de negócio (ciclo ADM), gerenciando riscos e portfólio macro.
+                  </p>
+                </div>
+                <div class="p-3 bg-blueprint-card rounded-lg border border-emerald-500 space-y-1">
+                  <strong class="text-emerald-400 font-mono block">⚡ A FÓRMULA DA AGILIDADE NO LABS</strong>
+                  <p class="text-slate-300 text-[11px] leading-relaxed">
+                    No Labs, mantemos o alinhamento estratégico usando ferramentas leves (ADRs/RFCs) sem burocracia, onde <strong>Agilidade = Testability + Deployability</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "exercicio_cloud_desafio":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-orange space-y-3 text-xs md:text-sm font-sans">
+              <div class="flex items-center justify-between text-blueprint-orange font-mono font-bold text-xs border-b border-blueprint-border/60 pb-2">
+                <span>☁️ CASO PRÁTICO 01 // PENSAMENTO ARQUITETURAL EM NUVEM</span>
+                <span class="text-blueprint-cyan font-mono">EXERCÍCIO DE TRADE-OFFS</span>
+              </div>
+              <p class="text-slate-200 font-medium leading-relaxed">
+                Estamos avaliando a migração de microsserviços e bancos de dados críticos da Vertical Sellers de nuvens públicas de terceiros para a infraestrutura de Magalu Cloud.
+              </p>
+              <div class="p-3 bg-orange-950/30 border border-blueprint-orange/60 rounded-lg space-y-1">
+                <span class="text-blueprint-orange font-mono font-bold text-xs block">PROVOCAÇÃO DE PENSAMENTO ARQUITETURAL:</span>
+                <p class="text-slate-100 font-bold text-xs italic">
+                  "Quais são os trade-offs desta decisão? Quais são os riscos de disponibilidade x economia financeira? Como avaliar o raio de impacto (blast radius) se algo falhar na migração?"
+                </p>
+              </div>
+              <div class="p-2.5 bg-cyan-950/30 border border-blueprint-cyan/50 rounded-lg text-blueprint-cyan text-xs font-mono space-y-1">
+                <strong>💡 PISTA PARA PENSAR COMO ARQUITETO:</strong>
+                <p class="text-slate-200 font-sans text-[11px]">
+                  Análise de 2 Leis: 1) O que estamos ganhando e o que estamos arriscando? 2) Quem avalia o ROI global do negócio (Ático) vs quem gerencia a resiliência física de clusters e redes (Sala de Máquinas)?
+                </p>
+              </div>
+            </div>
+          `;
+
+        case "exercicio_cloud_resposta":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-emerald-500/60 space-y-3 text-xs md:text-sm font-sans">
+              <div class="flex items-center justify-between text-emerald-400 font-mono font-bold text-xs border-b border-blueprint-border/60 pb-2">
+                <span>✅ CASO PRÁTICO 01 // ANÁLISE ARQUITETURAL & CONSENSO</span>
+                <span class="text-emerald-400 font-mono">SÍNTESE DA GUILDA</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-orange space-y-1">
+                  <span class="text-blueprint-orange font-mono font-bold text-xs block">1. VISÃO DE NEGÓCIO & ROI (ÁTICO)</span>
+                  <p class="text-slate-200 text-xs leading-relaxed">
+                    Análise do retorno financeiro (<strong>ROI</strong>), custo por requisição e viabilidade estratégica de reduzir o lock-in com fornecedores externos de nuvem.
+                  </p>
+                </div>
+                <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-cyan space-y-1">
+                  <span class="text-blueprint-cyan font-mono font-bold text-xs block">2. RESILIÊNCIA & EXECUÇÃO (SALA DE MÁQUINAS)</span>
+                  <p class="text-slate-200 text-xs leading-relaxed">
+                    Desenho da topologia de redes, isolamento de VPCs, redundância de clusters de Kubernetes e estratégia de migração em ondas com plano de fallback.
+                  </p>
+                </div>
+              </div>
+              <div class="p-2.5 bg-emerald-950/30 border border-emerald-500/40 rounded-lg text-emerald-200 text-xs font-mono">
+                💡 <strong>Lição de Pensamento Arquitetural:</strong> Não existe 'nuvem grátis' ou sem risco. Toda escolha de infraestrutura troca custo operacional por controle e resiliência.
+              </div>
+            </div>
+          `;
+
+        case "exercicio_id_desafio":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-cyan space-y-3 text-xs md:text-sm font-sans">
+              <div class="flex items-center justify-between text-blueprint-cyan font-mono font-bold text-xs border-b border-blueprint-border/60 pb-2">
+                <span>🔐 CASO PRÁTICO 02 // PENSAMENTO ARQUITETURAL EM SELLERS</span>
+                <span class="text-blueprint-orange font-mono">EXERCÍCIO DE LATÊNCIA E REVERSIBILIDADE</span>
+              </div>
+              <p class="text-slate-200 font-medium leading-relaxed">
+                A plataforma de <strong>Vertical Sellers</strong> precisa autenticar milhares de parceiros lojistas atualizando estoques, preços e novos pedidos via portal e integrações de API.
+              </p>
+              <div class="p-3 bg-orange-950/30 border border-blueprint-orange/60 rounded-lg space-y-1">
+                <span class="text-blueprint-orange font-mono font-bold text-xs block">PROVOCAÇÃO AO QUESTIONADOR E À SALA:</span>
+                <p class="text-slate-100 font-bold text-xs italic">
+                  "Se a API do Seller fizer uma requisição de rede síncrona ao ID Magalu para validar o token a cada ação do lojista, o que acontece com a latência no pico de vendas? E se a squad acoplar a SDK proprietária do IdP direto na regra de negócio?"
+                </p>
+              </div>
+              <div class="p-2.5 bg-cyan-950/30 border border-blueprint-cyan/50 rounded-lg text-blueprint-cyan text-xs font-mono space-y-1">
+                <strong>💡 PISTAS PARA PENSAR COMO ARQUITETO:</strong>
+                <p class="text-slate-200 font-sans text-[11px]">
+                  1. Como validar a legitimidade de um token JWT na Borda sem realizar chamadas HTTP pela rede?<br>
+                  2. Qual padrão de projeto local evita que o código de domínio fique refém de uma SDK de terceiro?
+                </p>
+              </div>
+            </div>
+          `;
+
+        case "exercicio_id_resposta":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-emerald-500/60 space-y-3 text-xs md:text-sm font-sans">
+              <div class="flex items-center justify-between text-emerald-400 font-mono font-bold text-xs border-b border-blueprint-border/60 pb-2">
+                <span>✅ CASO PRÁTICO 02 // ANÁLISE ARQUITETURAL & CONSENSO</span>
+                <span class="text-emerald-400 font-mono">SÍNTESE DA GUILDA</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-cyan space-y-1">
+                  <span class="text-blueprint-cyan font-mono font-bold text-xs block">1. ARQUITETURA DE REDE (BORDA / GATEWAY)</span>
+                  <p class="text-slate-200 text-xs leading-relaxed">
+                    Validação criptográfica offline do JWT no API Gateway via <strong>JWKS</strong> (chaves públicas em cache), garantindo <strong>latência zero de rede</strong> para os Sellers.
+                  </p>
+                </div>
+                <div class="p-3 bg-blueprint-card rounded-lg border border-blueprint-orange space-y-1">
+                  <span class="text-blueprint-orange font-mono font-bold text-xs block">2. DESIGN DE PROJETO (CÓDIGO LOCAL)</span>
+                  <p class="text-slate-200 text-xs leading-relaxed">
+                    Isolamento da SDK por um <strong>Adapter Pattern</strong> (<code>PermissionsAdapter</code>). O código de negócio da Vertical Sellers não conhece a biblioteca do IdP.
+                  </p>
+                </div>
+              </div>
+              <div class="p-2.5 bg-emerald-950/30 border border-emerald-500/40 rounded-lg text-emerald-200 text-xs font-mono">
+                💡 <strong>Lição de Reversibilidade (Fowler):</strong> Se a empresa alterar o provedor de identidade no futuro, o custo no core da Vertical Sellers é zero.
+              </div>
+            </div>
+          `;
+
+        case "checklist_segunda":
+          return `
+            <div class="p-4 bg-blueprint-bg rounded-xl border border-blueprint-orange space-y-3 text-xs font-sans">
+              <span class="text-blueprint-orange font-mono font-bold block">AÇÕES CONCRETAS DA SEMANA (REVERSIBILIDADE EM AÇÃO)</span>
+              <div class="space-y-2">
+                <div class="p-2.5 bg-blueprint-card rounded border border-blueprint-border flex items-center space-x-2">
+                  <input type="checkbox" checked disabled class="rounded border-blueprint-border text-blueprint-orange">
+                  <span class="text-slate-200"><strong>Regra de Reversibilidade (Fowler):</strong> Abrir rascunho de ADR no Confluence adiar escolhas rígidas de infraestrutura.</span>
+                </div>
+                <div class="p-2.5 bg-blueprint-card rounded border border-blueprint-border flex items-center space-x-2">
+                  <input type="checkbox" checked disabled class="rounded border-blueprint-border text-blueprint-cyan">
+                  <span class="text-slate-200"><strong>Abstração Local:</strong> Escrever RFC técnica propondo o <code>PermissionsAdapter</code> nas squads para evitar lock-in de IdP.</span>
+                </div>
+                <div class="p-2.5 bg-blueprint-card rounded border border-blueprint-border flex items-center space-x-2">
+                  <input type="checkbox" checked disabled class="rounded border-blueprint-border text-emerald-400">
+                  <span class="text-slate-200"><strong>Ergonomia de Deploy:</strong> Mapear atritos na esteira de CI/CD para automatizar GMUDs manuais com segurança.</span>
+                </div>
+              </div>
+            </div>
+          `;
+
+        case "fechamento":
+          return `
+            <div class="p-6 bg-blueprint-bg rounded-xl border-2 border-blueprint-orange text-center space-y-4 font-sans">
+              <span class="text-blueprint-orange font-mono text-xs block">LUIZALABS // GUILDA DE ARQUITETURA</span>
+              <p class="text-base md:text-lg text-slate-100 font-bold leading-relaxed">
+                "Pensar arquiteturalmente é substituir preferências pessoais por análises científicas de trade-offs."
+              </p>
+              <div class="text-xs text-blueprint-cyan font-mono">
+                Obrigado a todos e até o próximo ciclo! 🚀
+              </div>
+            </div>
+          `;
+
+        default:
+          return `<div class="p-4 text-slate-400 font-mono text-xs">Conteúdo visual em definição...</div>`;
+      }
+    }
+
+    function renderSlide(index) {
+      if (index < 0 || index >= slidesData.length) return;
+      currentSlideIndex = index;
+      const slide = slidesData[currentSlideIndex];
+
+      slideTitle.textContent = slide.title;
+      slideSubtitle.textContent = slide.subtitle;
+      slideBadge.textContent = `SLIDE ${String(slide.id).padStart(2, '0')}`;
+      slideChamada.textContent = slide.chamada;
+      slideNota.textContent = slide.nota;
+
+      headerSlideCounter.textContent = `SLIDE ${String(slide.id).padStart(2, '0')} / ${slidesData.length}`;
+      
+      const pct = Math.round(((currentSlideIndex + 1) / slidesData.length) * 100);
+      progressPercentage.textContent = `${pct}%`;
+      progressBarFill.style.width = `${pct}%`;
+
+      slideContentArea.innerHTML = renderVisualContent(slide);
+
+      drawerSpeech.textContent = `"${slide.speech}"`;
+      drawerExplain.textContent = slide.explain;
+      drawerHook.textContent = slide.hook;
+
+      btnPrev.disabled = currentSlideIndex === 0;
+      btnNext.textContent = currentSlideIndex === slidesData.length - 1 ? "CONCLUIR" : "PRÓXIMO";
+
+      if (presenterWindow && !presenterWindow.closed) {
+        updatePresenterPopUp();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlideIndex > 0) {
+        renderSlide(currentSlideIndex - 1);
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlideIndex < slidesData.length - 1) {
+        renderSlide(currentSlideIndex + 1);
+      }
+    }
+
+    function toggleDrawer() {
+      const isHidden = drawerPanel.classList.contains('opacity-0');
+      if (isHidden) {
+        drawerPanel.classList.remove('opacity-0', 'invisible', 'pointer-events-none', 'translate-y-full');
+        drawerPanel.classList.add('opacity-100', 'visible', 'pointer-events-auto', 'translate-y-0');
+      } else {
+        drawerPanel.classList.add('opacity-0', 'invisible', 'pointer-events-none', 'translate-y-full');
+        drawerPanel.classList.remove('opacity-100', 'visible', 'pointer-events-auto', 'translate-y-0');
+      }
+    }
+
+    function toggleMenu() {
+      const menu = document.getElementById('dropdown-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    function toggleGridModal() {
+      const modal = document.getElementById('grid-modal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        renderGridCards();
+      }
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    }
+
+    function toggleControlsVisibility() {
+      const footer = document.getElementById('footer-navigation');
+      const label = document.getElementById('label-hide-controls');
+      footer.classList.toggle('hidden');
+      if (footer.classList.contains('hidden')) {
+        label.textContent = "EXIBIR NAVEGAÇÃO";
+      } else {
+        label.textContent = "OCULTAR NAVEGAÇÃO";
+      }
+    }
+
+    function renderGridCards() {
+      const container = document.getElementById('grid-cards-container');
+      container.innerHTML = slidesData.map((s, idx) => `
+        <div onclick="renderSlide(${idx}); toggleGridModal();" class="p-3 bg-blueprint-bg border ${idx === currentSlideIndex ? 'border-blueprint-orange ring-2 ring-orange-500/30' : 'border-blueprint-border hover:border-blueprint-cyan'} rounded-xl cursor-pointer transition flex flex-col justify-between h-28 font-sans">
+          <div class="flex items-center justify-between text-[10px] font-mono text-blueprint-cyan">
+            <span>SLIDE ${String(s.id).padStart(2, '0')}</span>
+            ${idx === currentSlideIndex ? '<span class="text-blueprint-orange font-bold">ATUAL</span>' : ''}
+          </div>
+          <h4 class="text-xs font-bold text-slate-200 line-clamp-2 leading-snug">${s.title}</h4>
+          <span class="text-[10px] text-slate-400 line-clamp-1">${s.chamada}</span>
+        </div>
+      `).join('');
+    }
+
+    function openPresenterPopUp() {
+      if (presenterWindow && !presenterWindow.closed) {
+        presenterWindow.focus();
+        return;
+      }
+
+      presenterWindow = window.open('', 'PresenterPopUp', 'width=1000,height=750,scrollbars=yes,resizable=yes');
+      if (!presenterWindow) {
+        alert('Permita pop-ups no navegador para abrir a 2ª Tela de Apresentação.');
+        return;
+      }
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="pt-BR" class="h-full bg-slate-950 text-slate-100 font-sans">
+        <head>
+          <meta charset="UTF-8">
+          <title>2ª Tela // Cola do Apresentador</title>
+          <script src="https://cdn.tailwindcss.com"><\/script>
+          <style>
+            body { background-color: #0A192F; color: #F8FAFC; }
+          </style>
+        </head>
+        <body class="p-6 flex flex-col h-full justify-between space-y-4">
+          <!-- Pop-up Header -->
+          <div class="flex items-center justify-between border-b border-blue-900 pb-3 font-mono text-xs">
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-orange-500 animate-pulse"></span>
+              <strong class="text-orange-400">PAINEL DO FACILITADOR // 2ª TELA</strong>
+            </div>
+            
+            <!-- Presentation Timer -->
+            <div class="flex items-center space-x-3 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+              <span class="text-slate-400 font-bold">CRONÔMETRO:</span>
+              <span id="pop-timer" class="text-cyan-400 font-bold text-sm">00:00:00</span>
+              <button onclick="window.opener.toggleTimer()" id="btn-pop-timer" class="px-2 py-0.5 bg-blue-900 hover:bg-blue-800 rounded text-slate-200 text-[10px]">PAUSAR</button>
+              <button onclick="window.opener.resetTimer()" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 rounded text-slate-400 text-[10px]">ZERAR</button>
+            </div>
+
+            <!-- Font Resizer -->
+            <div class="flex items-center space-x-1">
+              <span class="text-slate-400 text-[11px]">FONTE:</span>
+              <button onclick="window.opener.changePresenterFontSize(-2)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded font-bold">A-</button>
+              <button onclick="window.opener.changePresenterFontSize(2)" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded font-bold">A+</button>
+            </div>
+          </div>
+
+          <!-- Active Slide Script Content -->
+          <div id="pop-body" class="flex-1 overflow-y-auto space-y-4 pr-2">
+            <!-- Dynamic presenter script content -->
+          </div>
+
+          <!-- Pop-up Footer Controls -->
+          <div class="pt-3 border-t border-blue-900 flex items-center justify-between font-mono text-xs">
+            <button onclick="window.opener.prevSlide()" class="px-4 py-2 bg-slate-900 border border-blue-800 rounded-lg text-slate-200 hover:bg-blue-950">❮ ANTERIOR</button>
+            <span id="pop-counter" class="text-cyan-400 font-bold">SLIDE -- / --</span>
+            <button onclick="window.opener.nextSlide()" class="px-4 py-2 bg-orange-600 rounded-lg text-slate-950 font-bold hover:bg-orange-500">PRÓXIMO ❯</button>
+          </div>
+
+          <script>
+            document.addEventListener('keydown', (e) => {
+              if (e.key === 'ArrowRight' || e.key === ' ') window.opener.nextSlide();
+              if (e.key === 'ArrowLeft') window.opener.prevSlide();
+            });
+          <\/script>
+        </body>
+        </html>
+      `;
+
+      presenterWindow.document.open();
+      presenterWindow.document.write(htmlContent);
+      presenterWindow.document.close();
+
+      setTimeout(() => {
+        updatePresenterPopUp();
+        if (!isTimerRunning) startTimer();
+      }, 300);
+    }
+
+    function updatePresenterPopUp() {
+      if (!presenterWindow || presenterWindow.closed) return;
+      const popDoc = presenterWindow.document;
+      const popBody = popDoc.getElementById('pop-body');
+      const popCounter = popDoc.getElementById('pop-counter');
+      if (!popBody || !popCounter) return;
+
+      const slide = slidesData[currentSlideIndex];
+      const nextSlideObj = slidesData[currentSlideIndex + 1];
+
+      popCounter.textContent = `SLIDE ${String(slide.id).padStart(2, '0')} / ${slidesData.length}`;
+
+      popBody.style.fontSize = `${presenterFontSize}px`;
+      popBody.innerHTML = `
+        <div class="p-4 bg-slate-900 border border-orange-500/50 rounded-xl space-y-2">
+          <span class="text-xs font-mono text-orange-400 block uppercase font-bold">SLIDE ATUAL (${slide.subtitle}):</span>
+          <h2 class="text-xl font-extrabold text-slate-100">${slide.title}</h2>
+          <p class="text-slate-300 text-sm italic font-sans">${slide.chamada}</p>
+        </div>
+
+        <div class="p-4 bg-blue-950/40 border border-cyan-500/50 rounded-xl space-y-2">
+          <strong class="text-xs font-mono text-cyan-400 block uppercase">💬 EXEMPLO DE FALA RECOMENDADA:</strong>
+          <p class="text-slate-100 font-sans leading-relaxed italic">"${slide.speech}"</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 font-sans text-sm">
+          <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-1">
+            <strong class="text-xs font-mono text-slate-300 block uppercase">🎯 O QUE EXPLICAR:</strong>
+            <p class="text-slate-300 leading-relaxed">${slide.explain}</p>
+          </div>
+          <div class="p-3 bg-slate-900 border border-slate-800 rounded-xl space-y-1">
+            <strong class="text-xs font-mono text-orange-400 block uppercase">🔗 GANCHO PARA O PRÓXIMO:</strong>
+            <p class="text-slate-300 leading-relaxed">${slide.hook}</p>
+          </div>
+        </div>
+
+        <div class="p-3 bg-amber-950/30 border border-amber-500/40 rounded-xl space-y-1 font-sans text-xs">
+          <strong class="text-amber-400 font-mono block">💡 LEMBRETE DE CONDUÇÃO DO SLIDE:</strong>
+          <p class="text-slate-200">${slide.tip}</p>
+        </div>
+
+        ${nextSlideObj ? `
+          <div class="p-3 bg-slate-900/60 border border-slate-800 rounded-xl font-mono text-xs text-slate-400 flex items-center justify-between">
+            <span>PRÓXIMO SLIDE (${String(nextSlideObj.id).padStart(2, '0')}):</span>
+            <span class="text-slate-200 font-bold truncate max-w-md">${nextSlideObj.title}</span>
+          </div>
+        ` : ''}
+      `;
+    }
+
+    function changePresenterFontSize(delta) {
+      presenterFontSize = Math.max(12, Math.min(28, presenterFontSize + delta));
+      updatePresenterPopUp();
+    }
+
+    function startTimer() {
+      if (timerInterval) clearInterval(timerInterval);
+      isTimerRunning = true;
+      timerInterval = setInterval(() => {
+        timerSeconds++;
+        updateTimerDisplay();
+      }, 1000);
+    }
+
+    function toggleTimer() {
+      if (isTimerRunning) {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+      } else {
+        startTimer();
+      }
+      updateTimerDisplay();
+    }
+
+    function resetTimer() {
+      timerSeconds = 0;
+      updateTimerDisplay();
+    }
+
+    function updateTimerDisplay() {
+      const hrs = String(Math.floor(timerSeconds / 3600)).padStart(2, '0');
+      const mins = String(Math.floor((timerSeconds % 3600) / 60)).padStart(2, '0');
+      const secs = String(timerSeconds % 60).padStart(2, '0');
+      const formatted = `${hrs}:${mins}:${secs}`;
+
+      if (presenterWindow && !presenterWindow.closed) {
+        const timerElem = presenterWindow.document.getElementById('pop-timer');
+        const btnTimer = presenterWindow.document.getElementById('btn-pop-timer');
+        if (timerElem) timerElem.textContent = formatted;
+        if (btnTimer) btnTimer.textContent = isTimerRunning ? 'PAUSAR' : 'CONTINUAR';
+      }
+    }
+
+    function buildPrintableContainer() {
+      const printContainer = document.getElementById('print-container');
+      if (!printContainer) return;
+
+      printContainer.innerHTML = slidesData.map((s) => `
+        <div class="print-page">
+          <div class="border-b border-blue-800 pb-3 flex justify-between items-center font-mono text-xs">
+            <span class="text-orange-400 font-bold">MAGAZINE LUIZA // LUIZALABS // VERTICAL SELLERS</span>
+            <span class="text-cyan-400">SLIDE ${String(s.id).padStart(2, '0')} / ${slidesData.length}</span>
+          </div>
+
+          <div class="my-6 space-y-3">
+            <span class="text-xs font-mono text-cyan-400 uppercase tracking-widest">${s.subtitle}</span>
+            <h2 class="text-2xl font-bold text-slate-100">${s.title}</h2>
+            
+            <div class="my-4">
+              ${renderVisualContent(s)}
+            </div>
+          </div>
+
+          <div class="border-t border-blue-800 pt-3 space-y-2 font-sans text-xs">
+            <div class="p-2 bg-blue-950/60 border border-orange-500/40 rounded text-slate-100 font-semibold">
+              ⚡ ${s.chamada}
+            </div>
+            <div class="text-slate-300 italic border-l-2 border-cyan-400 pl-2">
+              Nota: ${s.nota}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.onbeforeprint = function() {
+      buildPrintableContainer();
+    };
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        prevSlide();
+      } else if (e.key === 's' || e.key === 'S') {
+        toggleDrawer();
+      } else if (e.key === 'p' || e.key === 'P') {
+        openPresenterPopUp();
+      } else if (e.key === 'g' || e.key === 'G') {
+        toggleGridModal();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullScreen();
+      } else if (e.key === 'h' || e.key === 'H') {
+        toggleControlsVisibility();
+      } else if (e.key === 'Escape') {
+        const gridModal = document.getElementById('grid-modal');
+        const dropdownMenu = document.getElementById('dropdown-menu');
+        if (gridModal && !gridModal.classList.contains('hidden')) {
+          gridModal.classList.add('hidden');
+        }
+        if (dropdownMenu && !dropdownMenu.classList.contains('hidden')) {
+          dropdownMenu.classList.add('hidden');
+        }
+        if (drawerPanel && drawerPanel.classList.contains('opacity-100')) {
+          toggleDrawer();
+        }
+      }
+    });
+
+    window.onload = function() {
+      renderSlide(0);
+      buildPrintableContainer();
+    };
+  </script>
+</body>
+</html>
